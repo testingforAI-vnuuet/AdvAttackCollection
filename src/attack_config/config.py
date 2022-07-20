@@ -26,29 +26,51 @@ class AttackConfig:
         self.images = None
         self.labels = None
 
+        self.untargeted_fgsm_config = None
+        self.untargeted_bim_config = None
+        self.untargeted_hpba_config = None
+        self.untargeted_cw_l2_config = None
+        self.untargeted_bis_pgd_config = None
+
         self.analyze_config()
 
-    def analyze_config(self):
+    def analyze_config(self, reload=False):
         # analyze configurations, analyzing orders must be keep unchanged
 
         # analyze general configurations
-        self.general_config = self.config_parser[GENERAL_CONFIG]
+        if self.config_parser.__contains__(GENERAL_CONFIG):
+            self.general_config = self.config_parser[GENERAL_CONFIG]
 
-        # validate output folder path
-        self.output_folder = self.general_config[OUTPUT_FOLDER]
-        if not check_path_exists(self.output_folder):
-            mkdir(self.output_folder)
-        elif any(os.scandir(self.output_folder)):
-            logger.warning(f'Folder {self.output_folder} is not empty!')
+            # validate output folder path
+            self.output_folder = self.general_config[OUTPUT_FOLDER]
+            if not check_path_exists(self.output_folder):
+                mkdir(self.output_folder)
+            elif any(os.scandir(self.output_folder)):
+                logger.warning(f'Folder {self.output_folder} is not empty!')
 
-        self.pixel_range = np.array(self.general_config[PIXEL_RANGE], dtype='float32')
+            self.pixel_range = np.array(self.general_config[PIXEL_RANGE], dtype='float32')
 
-        self.load_target_classifier()
-        self.load_data()
+            self.load_target_classifier()
+            self.load_data()
+        else:
+            logger.error(f'Not found general configurations!')
+            sys.exit()
 
         # analyze attack configuration
-        # Todo: Define attack class
-        # Todo: analyze attack configuration
+        if self.config_parser.__contains__(UNTARGETED_FGSM):
+            self.untargeted_fgsm_config = self.config_parser[UNTARGETED_FGSM]
+
+        if self.config_parser.__contains__(UNTARGETED_BIM):
+            self.untargeted_bim_config = self.config_parser[UNTARGETED_BIM]
+
+        if self.config_parser.__contains__(UNTARGETED_HPBA):
+            self.untargeted_hpba_config = self.config_parser[UNTARGETED_HPBA]
+
+        if self.config_parser.__contains__(UNTARGETED_CW_L2):
+            self.untargeted_cw_l2_config = self.config_parser[UNTARGETED_CW_L2]
+
+        if self.config_parser.__contains__(UNTARGETED_BIS_PGD):
+            self.untargeted_bis_pgd_config = self.config_parser[UNTARGETED_BIS_PGD]
 
         # temporarily disable to debug
         # try:
@@ -121,11 +143,10 @@ class AttackConfig:
         logger.info(f'Load data complete!')
 
 
-
 if __name__ == '__main__':
     config = AttackConfig('D:\Things\PyProject\AdvAttackCollection\config.ini')
 
-    # example for change config.ini in runtime
+    # example for changing config.ini in runtime
     # config = ConfigObj('D:\\Things\\PyProject\\AdvAttackCollection\\config.ini')
     # temp = config[GENERAL_CONFIG][OUTPUT_FOLDER]
     # while(1):
@@ -133,4 +154,3 @@ if __name__ == '__main__':
     #     if config[GENERAL_CONFIG][OUTPUT_FOLDER] != temp:
     #         temp = config[GENERAL_CONFIG][OUTPUT_FOLDER]
     #         print(temp)
-

@@ -11,6 +11,16 @@ LABELS_DATA_PATH = 'labels_data_path'
 
 UNTARGETED_FGSM = 'Untargeted FGSM'
 UNTARGETED_BIM = 'Untargeted BIM'
+UNTARGETED_HPBA = 'Untargeted HPBA'
+UNTARGETED_CW_L2 = 'Untargeted CW L2'
+UNTARGETED_BIS_PGD = 'Untargeted BIS_PGD'
+
+EPSILON = 'epsilon'
+BATCH = 'batch'
+ENABLE = 'enable'
+MAX_ITERATION = 'max_iterations'
+MAX_BALL = 'max_ball'
+CONFIG_FILEPATH = 'config_filepath'
 
 
 

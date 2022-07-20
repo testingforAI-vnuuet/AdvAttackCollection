@@ -162,13 +162,13 @@ class UntargetedBIS:
                                      path=f'{img_folder}/img {idx}')
 
 if __name__ == '__main__':
-    TARGET_CLASSIFIER_PATH = '/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/data/classifier/CIFAR-10/ModelA/model'
+    TARGET_CLASSIFIER_PATH = 'D:\Things\PyProject\AdvDefense\data\CIFAR10\cifar10_classifier_I.h5'
     target_classifier = keras.models.load_model(TARGET_CLASSIFIER_PATH)
 
     trainingsetX = np.load(
-        '/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/data/dataset/CIFAR-10/50ktrainingset.npy')
+        'D:\Things\PyProject\AdvDefense\data\CIFAR10\cifar10_train_data.npy')
     trainingsetY = np.load(
-        '/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/data/dataset/CIFAR-10/50ktrainingset_labels.npy')
+        'D:\Things\PyProject\AdvDefense\data\CIFAR10\cifar10_sparse_train_label.npy')
 
     '''
     Just attack on correctly predicted images
@@ -182,4 +182,4 @@ if __name__ == '__main__':
                              Y=trainingsetY[true_indexes],
                              target_classifier=target_classifier)
     final_origin, final_advs, final_true_labels = attacker.attack()
-    attacker.export(output_folder='/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/untargeted bis')
+    attacker.export(output_folder='data')

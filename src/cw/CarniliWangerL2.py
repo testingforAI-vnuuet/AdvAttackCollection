@@ -8,14 +8,6 @@ import tensorflow as tf
 from tqdm import tqdm
 
 
-def carlini_wagner_l2(model_fn, x, **kwargs):
-    """
-    This is the function interface for the Carlini-Wagner-L2 attack.
-    For more details on the attack and the parameters see the corresponding class.
-    """
-    return CarliniWagnerL2(model_fn, **kwargs).attack(x)
-
-
 class CarliniWagnerL2Exception(Exception):
     pass
 
@@ -220,7 +212,7 @@ class CarliniWagnerL2(object):
                 current_best_score = set_with_mask(current_best_score, pred, mask)
 
                 # if the l2 distance is better than the one found before
-                # and if the example is a correct example (with regards to the labels)
+                # and if the example is a correct example (in regard to the labels)
                 mask = tf.math.logical_and(
                     tf.less(l2_dist, best_l2), compare_fn(pred_with_conf, lab)
                 )
@@ -255,7 +247,7 @@ class CarliniWagnerL2(object):
             )
             const = set_with_mask(const, (lower_bound + upper_bound) / 2.0, const_mask)
 
-            # else case is the negation of the inital mask
+            # else case is the negation of the initial mask
             lower_mask = tf.math.logical_not(upper_mask)
             lower_bound = set_with_mask(
                 lower_bound, tf.math.maximum(lower_bound, const), lower_mask
