@@ -9,6 +9,7 @@ import numpy as np
 import sys
 import tensorflow as tf
 # from utility.config import *
+from src.utils.constants import *
 from matplotlib import pyplot as plt
 
 
@@ -171,3 +172,221 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
 
     if display:
         plt.show()
+
+
+def get_timestamp(timestamp_format="%d%m%d-%H%M%S"):
+    return datetime.now().strftime(timestamp_format)
+
+
+def check_path_exists(path):
+    return os.path.exists(path)
+
+
+def mkdir(path):
+    if not check_path_exists(path):
+        os.makedirs(path)
+
+
+def mkdirs(paths):
+    if isinstance(paths, str):
+        mkdir(paths)
+    else:
+        for path in paths:
+            mkdir(path)
+
+
+def clear_dir(dir_path):
+    if not any(os.scandir(dir_path)):
+        return
+    for f in os.listdir(dir_path):
+        os.remove(os.path.join(dir_path, f))
+
+
+def check_file_extension(file_path: str, extension_type: str):
+    return file_path.endswith(extension_type)
+
+
+def get_file_name(file_path: str):
+    full_file_name = os.path.basename(file_path)
+    return os.path.splitext(full_file_name)[0]
+
+
+def save_images_to_folder(
+        folder_path,
+        images,
+        prefix_file_name='',
+        extension=IMAGE_EXTENSION[0],
+        logger=None
+):
+    if not check_path_exists(folder_path):
+        mkdir(folder_path)
+    elif any(os.scandir(folder_path)):
+        logger.debug(f'Folder {folder_path} is not empty!')
+
+    if np.max(images) < 1.1:
+        images = np.round(images * 255)
+
+    for index, image in enumerate(images):
+        file_name = prefix_file_name + str(index) + '.' + extension
+        file_path = os.path.join(folder_path, file_name)
+        cv2.imwrite(file_path, image)
+
+
+def validate_input_value(data, value_range):
+    min_value = np.min(data)
+    max_value = np.max(data)
+    return min_value >= value_range[0] and max_value <= value_range[1]
+
+
+def load_model(model_path, logger=None):
+    """
+    Read model using multiple model-reading methods
+    Parameters:
+        model_path: path to the model
+        logger: logger
+    Returns:
+        model: tensorflow model
+        model_name: name of model
+        success: if classifier_path is valid
+        message: returned message
+    """
+    if not check_path_exists(model_path):
+        return None, None, False, 'Path not found: ' + str(model_path)
+
+    # list of functions to read classifier model by supported formats
+    read_model_functions_list = [load_model_from_h5, load_model_from_folder]
+    success = False
+    model = None
+    model_name = None
+
+    for read_model_function in read_model_functions_list:
+        model, model_name, success, message = read_model_function(model_path)
+        logger.debug(message) if logger is not None else None
+        if success is True:
+            break
+
+    if success is True:
+        message = 'Successfully loaded model: '
+    else:
+        message = 'Failed to load model from: '
+    message += str(model_path)
+
+    return model, model_name, success, message
+
+
+def load_model_from_h5(model_file_path: str):
+    if not check_file_extension(model_file_path, TF_MODEL_H5_EXTENSION):
+        return None, None, False, f'Model format does not match to {TF_MODEL_H5_EXTENSION}'
+
+    try:
+        model = tf.keras.models.load_model(model_file_path, compile=False)
+        model_name = get_file_name(model_file_path)
+    except (ImportError, IOError) as e:
+        return None, None, False, e
+
+    return model, model_name, True, f'Loaded model with format {TF_MODEL_H5_EXTENSION}'
+
+
+def load_model_from_folder(model_folder_path: str):
+    """
+    read model from folder. Learn more: https://www.tensorflow.org/guide/keras/save_and_serialize#whole-model_saving_loading
+    :param model_folder_path: path to the model folder
+    :return:
+        model: tensorflow model
+        model_name: name of model
+        success: if classifier_path is valid
+        message: returned message
+    """
+    try:
+        model = tf.keras.models.load_model(model_folder_path, compile=False)
+        model_name = get_file_name(model_folder_path)
+    except (ImportError, IOError) as e:
+        return None, None, False, e
+
+    return model, model_name, True, 'Loaded model saved in folder as tf2.x version'
+
+
+def load_data_from_npy(data_file_path, logger):
+    """
+    read data from numpy binary file
+    :param
+        data_file_path: file path to the data file
+        logger: logger
+    :return:
+        data: returned loaded data
+    """
+    if not check_path_exists(data_file_path):
+        logger.error(f'Not found data path: {data_file_path}')
+        sys.exit()
+
+    if not check_file_extension(data_file_path, NP_BINARY_EXTENSION):
+        logger.error(
+            f'File type does not match: {data_file_path}'
+            f'Please choose the file with extension: {NP_BINARY_EXTENSION}'
+        )
+        sys.exit()
+
+    try:
+        data = np.load(data_file_path)
+    except OSError as e:
+        logger.error(f'Failed to load data from {data_file_path}')
+        sys.exit()
+
+    logger.info(f'Successfully loaded data from {data_file_path}')
+    logger.info(f'Data shape {data.shape}')
+    return data
+
+
+def load_image_from_folder(images_folder_path, image_shape, logger):
+    """
+    read data from folder
+    :param:
+        images_folder_path: folder path to the data folder
+        image_shape: shape of input images
+        logger: logger
+    :return:
+        data: returned loaded data from data folder
+        label: label of data referring to data folder
+    """
+    valid, message = validate_images_folder(images_folder_path)
+    if not valid:
+        logger.error(message)
+        sys.exit()
+    logger.info(message)
+
+    data = []
+    label = []
+    datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=None)
+
+    data_train = datagen.flow_from_directory(
+        images_folder_path, color_mode='rgb',
+        batch_size=200,
+        class_mode='sparse',
+        target_size=image_shape,
+    )
+
+    for i in range(data_train.__len__()):
+        logger.debug('Reading_image {:d}%'.format(int((i + 1) / data_train.__len__() * 100)))
+        data.append(data_train.next()[0])
+        label.append(data_train.next()[1])
+
+    data = np.concatenate(data)
+    label = np.concatenate(label)
+
+    logger.info('Reading images DONE!')
+    logger.info(f'Data size {data.shape[0]}')
+    logger.info(f'Image shape {data.shape[1:]}')
+    logger.info(f'Label shape {label.shape[1:]}')
+
+    return data, label
+
+
+def validate_images_folder(images_folder_path: str):
+    if not check_path_exists(images_folder_path):
+        return False, f'Data folder does not exist in: {images_folder_path}'
+
+    for path in os.listdir(images_folder_path):
+        if not path.isnumeric():
+            return False, f'Sub data folder is not valid: {path}'
+
+    return True, f'Data folder is valid: {images_folder_path}'
