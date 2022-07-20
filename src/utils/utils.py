@@ -171,3 +171,49 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
 
     if display:
         plt.show()
+
+def exportAttackResult(output_folder, target_classifier, final_origin, final_advs, final_true_labels):
+    print('----------------------')
+    print('DONE ATTACK. It is time to export the results.')
+
+    if os.path.exists(output_folder):
+        print(f'Folder {output_folder} exists. Stop attacking.')
+        return
+    else:
+        os.makedirs(output_folder)
+
+    print(f'\tExporting original images to \'{output_folder}/origins\'')
+    np.save(f'{output_folder}/origins', final_origin)
+
+    print(f'\tExporting adversarial images to \'{output_folder}/advs\'')
+    np.save(f'{output_folder}/advs', final_advs)
+
+    print(f'\tExporting ground-truth labels of images to \'{output_folder}/true_labels\'')
+    np.save(f'{output_folder}/true_labels', final_true_labels)
+
+    img_folder = f'{output_folder}/examples'
+    if not os.path.exists(img_folder):
+        os.makedirs(img_folder)
+
+    print(f'\tExporting some images to \'{img_folder}\'')
+    for idx in range(0, 10):  # just plot some images for visualization
+        advLabel = target_classifier.predict(final_advs[idx][np.newaxis, ...])
+        advLabel = np.argmax(advLabel, axis=1)[0]
+
+        show_two_images_3D(final_origin[idx],
+                                 final_advs[idx],
+                                 left_title=f'origin\n(label {final_true_labels[idx]})',
+                                 right_title=f'adv\n(label {advLabel})',
+                                 display=False,
+                                 path=f'{img_folder}/img {idx}')
+
+
+def compute_gradient_batch(inputs: tf.Tensor, target_neurons, target_classifier):
+    with tf.GradientTape(persistent=True) as tape:
+        tape.watch(inputs)
+        outputs = target_classifier(inputs)
+        gradient = []
+        n = outputs.shape[0]
+        for idx in range(n):
+            gradient.append(outputs[idx, target_neurons[idx]])
+    return gradient, tape
