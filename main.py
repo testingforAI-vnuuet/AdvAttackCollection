@@ -12,8 +12,8 @@ class AdvGenerator:
 
         self.output_folder = self.config_parser.output_folder
         self.target_classifier = self.config_parser.target_classifier
-        self.images = self.config_parser.images
-        self.labels = self.config_parser.labels
+        self.images = self.config_parser.images[:100]
+        self.labels = self.config_parser.labels[:100]
 
         self.attack_config = self.config_parser.attack_config
 

@@ -10,6 +10,9 @@ from tensorflow import keras
 import tensorflow
 
 from src.utils import utils
+from src.utils.attack_logger import AttackLogger
+
+logger = AttackLogger.get_logger()
 
 
 class UntargetedBIM_PGD:
@@ -43,6 +46,7 @@ class UntargetedBIM_PGD:
         '''
         Attack
         '''
+        logger.debug(f'ep={self.epsilon}, max_iter={self.max_iteration}')
         X = self.X
         ep = self.epsilon
         batch_size = self.batch_size
@@ -61,7 +65,7 @@ class UntargetedBIM_PGD:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            print(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
+            logger.debug(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
@@ -73,7 +77,7 @@ class UntargetedBIM_PGD:
             max = advs + max_norm
 
             while iter >= 0:
-                print(f'\tIteration {iter}')
+                logger.debug(f'\tIteration {iter}')
                 # compute gradient
                 gradient, tape = utils.compute_gradient_batch(inputs=tensor_advs,
                                                               target_neurons=Y[start: end],
@@ -87,9 +91,6 @@ class UntargetedBIM_PGD:
                 not_satisfied = np.where(isDiffLabels == False)[0]
 
                 advs[not_satisfied] = advs[not_satisfied] - ep * np.sign(grad[not_satisfied])
-
-                l2s = advs[not_satisfied] - X[start:end][not_satisfied]
-                print(f'fail pixels before {np.sum(np.abs(l2s) > max_norm)}')
                 '''
                 clip to max_norm
                 '''
@@ -100,9 +101,6 @@ class UntargetedBIM_PGD:
                 advs[not_satisfied] = advs[not_satisfied] * in_bound_matrix + \
                                       X[start:end][not_satisfied] * np.invert(in_bound_matrix) - \
                                       np.sign(grad[not_satisfied]) * (max_norm) * np.invert(in_bound_matrix)
-
-                l2s = advs[not_satisfied] - X[start:end][not_satisfied]
-                print(f'fail pixels after {np.sum(np.abs(l2s) > max_norm)}')
                 '''
                 clip to valid range
                 '''
@@ -116,7 +114,7 @@ class UntargetedBIM_PGD:
                 sr = np.sum(isDiffLabels) / len(Y[start: end])
 
                 if sr == 1 or iter < 0:
-                    print(f'\tAttacking this batch done. Success rate = {sr * 100}%')
+                    logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
 
                     satisfied = np.where(isDiffLabels)[0]
                     if self.final_advs is None:

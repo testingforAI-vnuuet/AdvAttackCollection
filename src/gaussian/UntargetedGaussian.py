@@ -2,7 +2,9 @@ import numpy as np
 from tensorflow import keras
 
 from src.utils import utils
+from src.utils.attack_logger import AttackLogger
 
+logger = AttackLogger.get_logger()
 
 class UntargetedGaussian:
     def __init__(self
@@ -48,7 +50,7 @@ class UntargetedGaussian:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            print(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
+            logger.debug(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
@@ -58,7 +60,7 @@ class UntargetedGaussian:
             not_satisfied = np.arange(start, end)
             adv_labels = Y[start:end].copy()
             while iter >= 0:
-                print(f'\tIteration {iter}', end='')
+                logger.debug(f'\tIteration {iter}')
                 noise = epsilon * np.random.normal(size=(len(not_satisfied), X.shape[1], X.shape[2], X.shape[3]))
                 advs[not_satisfied] = np.clip(advs[not_satisfied] + noise, lower_pixel_value, upper_pixel_value)
 
@@ -67,7 +69,7 @@ class UntargetedGaussian:
                 adv_labels[not_satisfied] = pred
                 not_satisfied = np.where(adv_labels == Y[start:end])[0]
                 satisfied = np.where(adv_labels != Y[start:end])[0]
-                print(f'\t\t Success rate of this batch = {np.round(len(satisfied) / len(adv_labels) * 100, 2)}%')
+                logger.debug(f'\t\t Success rate of this batch = {np.round(len(satisfied) / len(adv_labels) * 100, 2)}%')
 
                 if len(not_satisfied) == 0:
                     break

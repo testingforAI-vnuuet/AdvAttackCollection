@@ -10,7 +10,9 @@ from tensorflow import keras
 import tensorflow
 
 from src.utils import utils
+from src.utils.attack_logger import AttackLogger
 
+logger = AttackLogger.get_logger()
 
 class UntargetedBIS:
     def __init__(self
@@ -42,6 +44,8 @@ class UntargetedBIS:
         '''
         Attack
         '''
+        logger.debug(f'ep={self.epsilon}, max_iter={self.max_iteration}')
+        logger.debug(f'')
         X = self.X
         ep = self.epsilon
         batch_size = self.batch_size
@@ -60,7 +64,7 @@ class UntargetedBIS:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            print(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
+            logger.debug(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
@@ -70,7 +74,7 @@ class UntargetedBIS:
             tensor_advs = tensorflow.convert_to_tensor(advs)
 
             while iter >= 0:
-                print(f'\tIteration {iter}')
+                logger.debug(f'\tIteration {iter}')
                 # compute gradient
                 gradient, tape = utils.compute_gradient_batch(inputs=tensor_advs,
                                                              target_neurons=Y[start: end],
@@ -94,7 +98,7 @@ class UntargetedBIS:
                 sr = np.sum(isDiffLabels) / len(Y[start: end])
 
                 if sr == 1 or iter < 0:
-                    print(f'\tAttacking this batch done. Success rate = {sr * 100}%')
+                    logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
 
                     satisfied = np.where(isDiffLabels)[0]
                     if self.final_advs is None:
