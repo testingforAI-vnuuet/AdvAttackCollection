@@ -35,7 +35,6 @@ class CONFIG_TXT:
     ATTACK = 'ATTACK'
     originalLabel = 'originalLabel'
     targetLabel = 'targetLabel'
-    # targetPosition = 'targetPosition'
     useOptimizePhase = 'use_optimize_phase'
     recoverSpeed = 'recoverSpeed'
     weight = 'beta'

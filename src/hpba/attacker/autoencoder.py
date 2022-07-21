@@ -1,20 +1,17 @@
 from __future__ import absolute_import
 
 from numpy.core.multiarray import ndarray
-from tensorflow.keras.datasets import mnist
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, Conv2DTranspose, ReLU, Input, Concatenate
 from tensorflow.python.keras import Model, Sequential
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, History
 
-from attacker.losses import *
-from data_preprocessing.mnist import MnistPreprocessing
-from utility.config import *
-from utility.statistics import *
+from src.hpba.utility.config import *
+from src.hpba.utility.statistics import *
 
-logger = MyLogger.getLog()
+logger = AttackLogger.get_logger()
 
 
-class MnistAutoEncoder:
+class AutoEncoder:
     def __init__(self, input_range=None):
         """
               if input_range is None or (0, 1), ignore and set activation function in last layers as sigmoid
@@ -47,11 +44,9 @@ class MnistAutoEncoder:
         mcp_save = ModelCheckpoint(output_model_path, save_best_only=True, monitor='loss', mode='min')
         target_label_one_hot = keras.utils.to_categorical(target_label, MNIST_NUM_CLASSES, dtype='float32')
         auto_encoder.compile(optimizer=adam,
-                             loss=loss(
-                                 classifier=attacked_classifier,
-                                 epsilon=epsilon,
-                                 target_label=target_label_one_hot)
-                             )
+                             loss=loss(classifier=attacked_classifier,
+                                       epsilon=epsilon,
+                                       target_label=target_label_one_hot))
         if is_fit:
             auto_encoder.fit(x=training_set,
                              y=training_set,
@@ -89,7 +84,7 @@ class MnistAutoEncoder:
                                       padding='same')(x)
         return keras.models.Model(input_img, decoded)
 
-    def get_3d_atchitecture(self, input_shape):
+    def get_3d_architecture(self, input_shape):
         dae_inputs = Input(shape=input_shape, name='dae_input')
         conv_block1 = conv_block(dae_inputs, 32, 3)
         conv_block2 = conv_block(conv_block1, 64, 3)
@@ -174,41 +169,3 @@ def deconv_block(x, filters, kernel_size):
     x = BatchNormalization()(x)
     x = ReLU()(x)
     return x
-
-
-if __name__ == '__main__':
-    START_SEED, END_SEED = 0, 1000
-    TARGET = 7
-    AE_LOSS = AE_LOSSES.cross_entropy_loss
-    CNN_MODEL = keras.models.load_model(CLASSIFIER_PATH + '/pretrained_mnist_cnn1.h5')
-    AE_MODEL = CLASSIFIER_PATH + '/xxxx.h5'
-    FIG_PATH = CLASSIFIER_PATH + '/xxxx.png'
-
-    # load dataset
-    (train_X, train_Y), (test_X, test_Y) = mnist.load_data()
-    pre_mnist = MnistPreprocessing(train_X, train_Y, test_X, test_Y, START_SEED, END_SEED, TARGET)
-    train_X, train_Y, test_X, test_Y = pre_mnist.preprocess_data()
-    countSamples(probability_vector=train_Y, n_class=MNIST_NUM_CLASSES)
-
-    # train an autoencoder
-    ae_trainer = MnistAutoEncoder()
-    ae = ae_trainer.get_architecture()
-    ae.summary()
-    ae_trainer.train(
-        auto_encoder=ae,
-        attacked_classifier=CNN_MODEL,
-        loss=AE_LOSS,
-        epochs=2,
-        batch_size=256,
-        training_set=train_X,
-        epsilon=0.01,
-        output_model_path=AE_MODEL,
-        target_label=TARGET)
-
-    # compute the balance point
-    balanced_point = ae_trainer.compute_balanced_point(auto_encoder=ae,
-                                                       attacked_classifier=CNN_MODEL,
-                                                       loss=AE_LOSS,
-                                                       train_data=train_X,
-                                                       target_label=TARGET)
-    print(balanced_point)

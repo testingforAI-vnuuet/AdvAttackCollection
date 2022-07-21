@@ -1,14 +1,13 @@
 import cv2
 import matplotlib
-
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow import keras
+from src.utils.attack_logger import AttackLogger
 
-from utility.mylogger import MyLogger
+matplotlib.use('Agg')
 
-logger = MyLogger.getLog()
+logger = AttackLogger.get_logger()
 
 
 def countSamples(probability_vector, n_class):
@@ -19,7 +18,6 @@ def countSamples(probability_vector, n_class):
     for item in probability_vector:
         table[np.argmax(item)] += 1
 
-    # logger = MyLogger.getLog()
     logger.debug("Statistics:")
     logger.debug("Total: %s", probability_vector.shape[0])
     for item in range(0, n_class):
@@ -65,8 +63,6 @@ def label_ranking(data_set: np.ndarray, classifier: keras.models.Model) -> np.nd
     :type data_set:
     :param classifier:
     :type classifier:
-    :param label_position:
-    :type label_position:
     :return:
     :rtype:
     """
@@ -207,7 +203,6 @@ def plot_images(origin_image_worst, origin_image_best, gen_image_worst, gen_imag
     ax.get_yaxis().set_visible(False)
 
     plt.savefig(save_path)
-    # plt.show()
     logger.debug('ok')
     plt.close()
     return

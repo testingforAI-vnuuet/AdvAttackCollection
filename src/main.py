@@ -1,16 +1,13 @@
-import os
-
-from src.hpba.utility.mylogger import MyLogger
-from attacker.hpba import *
-from utility.config import attack_config, analyze_config
-import tensorflow as tf
+from src.hpba.attacker.hpba import *
+from src.hpba.utility.config import attack_config, analyze_config
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 tf.config.run_functions_eagerly(True)
-logger = MyLogger().getLog()
 
-config_file = os.path.abspath('config.ini')
+logger = AttackLogger.get_logger()
+
+config_file = os.path.abspath('D:\Things\PyProject\AdvAttackCollection\src\hpba\config.ini')
 
 if __name__ == '__main__':
     logger.debug('robustness START')
@@ -18,7 +15,7 @@ if __name__ == '__main__':
     analyze_config(config_file)
     logger.debug('reading configuration DONE')
     attacker = HPBA(origin_label=attack_config.original_class, trainX=attack_config.training_data,
-                    trainY=attack_config.label_data, target_label=attack_config.target_class,
+                    trainY=attack_config.label_data,
                     weight=attack_config.weight, target_classifier=attack_config.classifier,
                     step_to_recover=attack_config.recover_speed,
                     num_images_to_attack=attack_config.number_data_to_attack,

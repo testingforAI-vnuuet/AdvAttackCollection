@@ -1,14 +1,14 @@
 import os
 
-from _test.run_testcase import test_loop
-from utility.constants import *
-from attacker.constants import *
-from utility.utils import check_path_exists, get_file_name, exit_execution, check_file_extension
+from src.hpba._test.run_testcase import test_loop
+from src.hpba.utility.constants import *
+from src.hpba.attacker.constants import *
+from src.hpba.utility.utils import check_path_exists, get_file_name, exit_execution, check_file_extension
 import tensorflow as tf
-from custom_objects import user_custom_objects
-from attacker.losses import custom_losses
+from src.hpba.custom_objects import user_custom_objects
+from src.hpba.attacker.losses import custom_losses
 import numpy as np
-from classifier.black_box_classifier import BlackBoxClassifier
+from src.hpba.classifier.black_box_classifier import BlackBoxClassifier
 
 custom_objects = {**user_custom_objects, **custom_losses}
 

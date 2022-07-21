@@ -1,15 +1,14 @@
 import configparser
+from src.hpba._test.attacker.test_input_config import test_input_config
+from src.hpba.attacker.constants import *
+from src.hpba.utility.autoencoder_config import AutoencoderConfig
+from src.hpba.utility.constants import *
+from src.hpba.utility.model_utils import analyze_classifier, validate_two_models, analyze_autoencoder
+from src.utils.attack_logger import AttackLogger
+from src.hpba.utility.utils import *
+from src.hpba.utility.utils import exit_execution
 
-from _test.attacker.test_input_config import test_input_config
-from attacker.constants import *
-from utility.autoencoder_config import AutoencoderConfig
-from utility.constants import *
-from utility.model_utils import analyze_classifier, validate_two_models, analyze_autoencoder
-from utility.mylogger import *
-from utility.utils import *
-from utility.utils import exit_execution
-
-logger = MyLogger().getLog()
+logger = AttackLogger.get_logger()
 
 
 class attack_config:
@@ -69,6 +68,7 @@ def analyze_config(config_path):
     # untargeted attack
     attack_config.L2_threshold_to_stop_attack = config_parser[CONFIG_TXT.ATTACK][
         CONFIG_TXT.L2thresholdtoStopAttack]
+
     if attack_config.L2_threshold_to_stop_attack == '':
         attack_config.L2_threshold_to_stop_attack = None
     else:
@@ -76,6 +76,7 @@ def analyze_config(config_path):
 
     attack_config.L0_threshold_to_stop_attack = config_parser[CONFIG_TXT.ATTACK][
         CONFIG_TXT.L0thresholdtoStopAttack]
+
     if attack_config.L0_threshold_to_stop_attack == '':
         attack_config.L0_threshold_to_stop_attack = None
     else:
@@ -83,6 +84,7 @@ def analyze_config(config_path):
 
     attack_config.SSIM_threshold_to_stop_attack = config_parser[CONFIG_TXT.ATTACK][
         CONFIG_TXT.SSIMthresholdtoStopAttack]
+
     if attack_config.SSIM_threshold_to_stop_attack == '':
         attack_config.SSIM_threshold_to_stop_attack = None
     else:
@@ -90,7 +92,7 @@ def analyze_config(config_path):
             attack_config.SSIM_threshold_to_stop_attack)
 
     # attack type
-    attack_type_int = int(config_parser[CONFIG_TXT.CLASSIFIER][CONFIG_TXT.attack_type])
+    attack_type_int = 1
     if attack_type_int not in [0, 1]:
         logger.error(shared_incorrect_para_msg.format(param=CONFIG_TXT.attack_type))
         exit_execution(shared_exit_msg)
@@ -109,17 +111,23 @@ def analyze_config(config_path):
 
     attack_config.original_class = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.originalLabel])
     attack_config.weight = float(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.weight])
+
     attack_config.number_data_to_attack = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.numberDataToAttack])
     attack_config.number_data_to_train_autoencoder = int(
         config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.numberDataToTrainAutoencoder])
+
     attack_config.use_optimize_phase = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.useOptimizePhase])
     attack_config.recover_speed = float(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.recoverSpeed])
+
     attack_config.epoch_to_optimize = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.epochToOptimize])
     attack_config.batch_to_optimize = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.batchToOptimize])
+
     attack_config.epochs = int(config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.epochs])
     attack_config.batch_size = int(config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.batch_size])
+
     attack_config.print_result_every_epochs = int(
         config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.print_result_every_epochs])
+
     attack_config.learning_rate = float(config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.learning_rate])
     attack_config.quality_loss = str(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.quality_loss]).lower()
 
@@ -133,12 +141,15 @@ def analyze_config(config_path):
     autoencoder_path = str(config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.autoencoder_model_path])
     analyze_autoencoder(autoencoder_path=autoencoder_path, config=attack_config, logger=logger,
                         shared_exit_msg=shared_exit_msg, custom_objects=None)
-    attack_config.autoencoder_config = AutoencoderConfig(epochs=attack_config.epochs,
-                                                         batch_size=attack_config.batch_size,
-                                                         print_result_every_epochs=attack_config.print_result_every_epochs,
-                                                         learning_rate=attack_config.learning_rate,
-                                                         autoencoder_model=attack_config.autoencoder_model,
-                                                         autoencoder_model_name=attack_config.autoencoder_model_name)
+
+    attack_config.autoencoder_config = AutoencoderConfig(
+        epochs=attack_config.epochs,
+        batch_size=attack_config.batch_size,
+        print_result_every_epochs=attack_config.print_result_every_epochs,
+        learning_rate=attack_config.learning_rate,
+        autoencoder_model=attack_config.autoencoder_model,
+        autoencoder_model_name=attack_config.autoencoder_model_name
+    )
 
     # data path
     if int(config_parser[CONFIG_TXT.DATA][CONFIG_TXT.useDataFolder]) == 0:
@@ -151,23 +162,13 @@ def analyze_config(config_path):
     attack_config.input_range = get_range_of_input(attack_config.training_data)
 
     # get target class
-    target_class = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.targetLabel])
-    if target_class == attack_config.original_class:
-        logger.error(shared_incorrect_para_msg.format(
-            param=CONFIG_TXT.targetLabel) + ' It should not be original label.')
-
+    # target_class = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.targetLabel])
+    # if target_class == attack_config.original_class:
+    #     logger.error(shared_incorrect_para_msg.format(
+    #         param=CONFIG_TXT.targetLabel) + ' It should not be original label.')
+    #
     # if target_class not in range(-1, attack_config.num_class):
-    #     if target_position not in range(1, attack_config.num_class + 1):
-    #         logger.error(f'target label or target position are not correct')
-    #         exit_execution(shared_exit_msg)
-    #     else:
-    #         attack_config.target_position = target_position
+    #     logger.error(f'target label is not correct')
+    #     exit_execution(shared_exit_msg)
     # else:
     #     attack_config.target_class = target_class
-    #     attack_config.target_position = None
-
-    if target_class not in range(-1, attack_config.num_class):
-        logger.error(f'target label is not correct')
-        exit_execution(shared_exit_msg)
-    else:
-        attack_config.target_class = target_class

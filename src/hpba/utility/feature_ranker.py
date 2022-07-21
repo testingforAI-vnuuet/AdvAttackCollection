@@ -1,16 +1,9 @@
 import enum
 import random
 
-from tensorflow import keras
-from tensorflow.keras.datasets import mnist
-from tensorflow.python.keras import Sequential
-import numpy as np
-from attacker.constants import CLASSIFIER_PATH
-from data_preprocessing.mnist import MnistPreprocessing
-from utility.mylogger import MyLogger
+from src.hpba.utility.config import *
 
-logger = MyLogger.getLog()
-from utility.config import *
+logger = AttackLogger.get_logger()
 
 
 class RANKING_ALGORITHM(enum.Enum):
@@ -216,54 +209,3 @@ class feature_ranker:
             tmp_image[0][row, col] = tmp_pixel_value
 
         return np.array(important_pixels), np.array(score)
-
-
-if __name__ == '__main__':
-    classifier = keras.models.load_model(CLASSIFIER_PATH + '/pretrained_mnist_cnn1.h5')
-    LABEL = 4
-    if isinstance(classifier, Sequential):
-        # get a seed
-        (trainX, trainY), (testX, testY) = mnist.load_data()
-        pre_mnist = MnistPreprocessing(
-            trainX=trainX,
-            trainY=trainY,
-            testX=testX,
-            testY=testY,
-            start=0,
-            end=100,
-            removed_labels=None)
-        trainX, trainY, _, _ = pre_mnist.preprocess_data()
-
-        # consider an input vector
-        important_features = feature_ranker.find_important_features_of_a_sample(
-            input_image=trainX[0],
-            n_rows=MNIST_IMG_ROWS,
-            n_cols=MNIST_IMG_COLS,
-            n_channels=MNIST_IMG_CHL,
-            n_important_features=50,
-            algorithm=RANKING_ALGORITHM.ABS,
-            gradient_label=3,
-            classifier=classifier
-        )
-        logger.debug(important_features.shape)
-        feature_ranker.highlight_important_features(
-            important_features=important_features,
-            input_image=trainX[0]
-        )
-
-        # consider input vectors
-        important_features = feature_ranker.find_important_features_of_samples(
-            input_images=trainX[0:100],
-            n_rows=MNIST_IMG_ROWS,
-            n_cols=MNIST_IMG_COLS,
-            n_channels=MNIST_IMG_CHL,
-            n_important_features=3,
-            algorithm=RANKING_ALGORITHM.COI,
-            gradient_label=1,
-            classifier=classifier
-        )
-        logger.debug(important_features.shape)
-        feature_ranker.highlight_important_features(
-            important_features=important_features,
-            input_image=trainX[1]
-        )

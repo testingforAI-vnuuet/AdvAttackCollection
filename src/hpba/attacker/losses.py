@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from attacker.constants import *
+from src.hpba.attacker.constants import *
 
 
 class AE_LOSSES:

@@ -8,9 +8,8 @@ import cv2
 import numpy as np
 import sys
 import tensorflow as tf
-# from utility.config import *
 
-from utility.constants import DATA_NP_EXTENSION, ALLOWED_IMAGE_EXTENSIONS, shared_exit_msg
+from src.hpba.utility.constants import DATA_NP_EXTENSION, ALLOWED_IMAGE_EXTENSIONS, shared_exit_msg
 
 
 def get_timestamp(timestamp_format="%d%m%d-%H%M%S"):
@@ -185,13 +184,6 @@ def validate_image_folder(attack_config, image_folder_path: str):
         attack_config.original_class) + \
            '. Please set the dataset directory named as "' + str(attack_config.original_class) + '"'
 
-
-# def pre_process_from_folder_wrapper(attack_config):
-#     def pre_process_folder(filename):
-#         img = cv2.imread(filename)
-
-
-# metric
 
 def compute_l0(adv: np.ndarray,
                ori: np.ndarray):

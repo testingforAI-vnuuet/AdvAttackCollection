@@ -5,13 +5,14 @@ Reference: https://stackoverflow.com/questions/384076/how-can-i-color-python-log
 import logging
 
 logging.getLogger('tensorflow').disabled = True
+
+
 class MyLogger:
     logger = None
 
     @staticmethod
     def getLog():
-        if (MyLogger.logger is None):
-            print("Init logger")
+        if MyLogger.logger is None:
             LOG_LEVEL = logging.DEBUG
             LOGFORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(log_color)s%(message)s%(reset)s"
             from colorlog import ColoredFormatter
@@ -31,4 +32,3 @@ class MyLogger:
             # MyLogger.logger.error("Serious stuff, this is red for a reason")
             # MyLogger.logger.critical("OH NO everything is on fire")
         return MyLogger.logger
-

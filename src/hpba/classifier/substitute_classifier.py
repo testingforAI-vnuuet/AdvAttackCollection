@@ -2,13 +2,12 @@
 Created by khadm on 1/15/2022
 Feature: 
 """
-from classifier.black_box_classifier import BlackBoxClassifier
+from src.hpba.classifier.black_box_classifier import BlackBoxClassifier
 import tensorflow as tf
 import numpy as np
-from utility.mylogger import MyLogger
+from src.utils.attack_logger import AttackLogger
 
-logger = MyLogger.getLog()
-
+logger = AttackLogger.get_logger()
 
 class SubstituteClassifier:
     MAX_TRAINING = 4  # >= 1 (could be modified based on experience)
@@ -44,38 +43,6 @@ class SubstituteClassifier:
         x = tf.keras.layers.Dense(units=self.num_classes, activation='relu')(x)
         last_activation = 'softmax' if self.num_classes > 1 else 'sigmoid'
         outputs = tf.keras.layers.Activation(activation=last_activation)(x)
-
-        # model.add(Conv2D(32,(3,3),input_shape=(32,32,3),padding='same',activation='relu'))
-        # x = tf.keras.layers.Conv2D(32, (3, 3), input_shape=(32, 32, 3), padding='same', activation='relu')(inputs)
-        # x = tf.keras.layers.Dropout(0.2)(x)
-        #
-        # x = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same')(x)
-        # x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
-        #
-        # x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-        # x = tf.keras.layers.Dropout(0.2)(x)
-        #
-        # x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-        # x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
-        #
-        # x = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-        # x = tf.keras.layers.Dropout(0.2)(x)
-        #
-        # x = tf.keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
-        # x = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
-        #
-        # x = tf.keras.layers.Flatten()(x)
-        # x = tf.keras.layers.Dropout(0.2)(x)
-        #
-        # x = tf.keras.layers.Dense(1024, activation='relu')(x)
-        # x = tf.keras.layers.Dropout(0.2)(x)
-        #
-        # x = tf.keras.layers.Dense(512, activation='relu')(x)
-        # x = tf.keras.layers.Dropout(0.2)(x)
-        #
-        # x = tf.keras.layers.Dense(units=self.num_classes, activation='relu', name='pre_softmax_layer')(x)
-        # last_activation = 'softmax' if self.num_classes > 1 else 'sigmoid'
-        # outputs = tf.keras.layers.Activation(activation=last_activation)(x)
 
         model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
 

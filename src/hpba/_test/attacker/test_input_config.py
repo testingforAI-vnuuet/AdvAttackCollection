@@ -2,10 +2,10 @@
 Created by khadm on 1/5/2022
 Feature: 
 """
-from attacker.constants import LOSS_MSE, LOSS_SSIM, LOSS_SSIM_MULTISCALE
-from utility.constants import CONFIG_TXT, shared_incorrect_para_msg
+from src.hpba.attacker.constants import LOSS_MSE, LOSS_SSIM, LOSS_SSIM_MULTISCALE
+from src.hpba.utility.constants import CONFIG_TXT, shared_incorrect_para_msg
 import numpy as np
-from _test.run_testcase import test_loop
+from src.hpba._test.run_testcase import test_loop
 
 
 def test_input_config(attack_config, logger):

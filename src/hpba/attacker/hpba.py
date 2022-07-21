@@ -4,25 +4,26 @@ Created At: 14/07/2021 15:39
 import random
 import time
 import warnings
+
 from tensorflow.python.keras.callbacks import ModelCheckpoint
 
-from attacker.SuccessRateComputationCallback import SuccessRateComputationCallback
-from attacker.autoencoder import MnistAutoEncoder
-from utility.autoencoder_config import AutoencoderConfig
-from attacker.constants import *
-from attacker.attacker import Attacker
-from attacker.losses import AE_LOSSES
-from data_preprocessing.mnist import MnistPreprocessing
-from utility.config import attack_config
-from utility.constants import *
-from utility.optimize_advs import optimize_advs
-from utility.statistics import *
-from utility.utils import *
+from src.hpba.attacker.SuccessRateComputationCallback import SuccessRateComputationCallback
+from src.hpba.attacker.attacker import Attacker
+from src.hpba.attacker.autoencoder import AutoEncoder
+from src.hpba.attacker.constants import *
+from src.hpba.attacker.losses import AE_LOSSES
+from src.hpba.data_preprocessing.data_preprocessing import DataPreprocessing
+from src.hpba.utility.autoencoder_config import AutoencoderConfig
+from src.hpba.utility.config import attack_config
+from src.hpba.utility.constants import *
+from src.hpba.utility.optimize_advs import optimize_advs
+from src.hpba.utility.statistics import *
+from src.hpba.utility.utils import *
 
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 tf.config.experimental_run_functions_eagerly(True)
 
-logger = MyLogger.getLog()
+logger = AttackLogger.get_logger()
 
 
 class HPBA(Attacker):
@@ -32,8 +33,6 @@ class HPBA(Attacker):
                  target_classifier,
                  substitute_classifier,
                  weight,
-                 target_label=None,
-                 # target_position=2,
                  step_to_recover=12.,
                  num_images_to_attack=1000,
                  pattern=ALL_PATTERN,
@@ -42,26 +41,26 @@ class HPBA(Attacker):
                  use_optimize_phase=True,
                  attack_type=ATTACK_WHITEBOX_TYPE,
                  substitute_classifier_name=None,
-                 attack_stop_condition=None, autoencoder_config: AutoencoderConfig = None, quality_loss_str=LOSS_MSE):
+                 attack_stop_condition=None,
+                 autoencoder_config: AutoencoderConfig = None,
+                 quality_loss_str=LOSS_MSE):
 
         super().__init__(trainX=trainX,
                          trainY=trainY,
                          target_classifier=target_classifier,
                          substitute_classifier=substitute_classifier,
                          substitute_classifier_name=substitute_classifier_name,
-                         target_label=target_label,
-                         # target_position=target_position,
                          num_class=num_class,
                          method_name=HPBA_METHOD_NAME,
                          attack_type=attack_type,
                          origin_label=origin_label,
-                         attack_stop_condition=attack_stop_condition, quality_loss_str=quality_loss_str)
+                         attack_stop_condition=attack_stop_condition,
+                         quality_loss_str=quality_loss_str)
 
         self.weight = weight
         self.step_to_recover = step_to_recover
         self.num_images_to_attack = num_images_to_attack if len(self.origin_images) > num_images_to_train else len(
             self.origin_images)
-        # self.max_number_advs_to_optimize = max_number_advs_to_optimize
 
         self.pattern = pattern
         self.num_images_to_train = num_images_to_train
@@ -88,7 +87,6 @@ class HPBA(Attacker):
         mkdirs([self.autoencoder_folder])
         mkdirs([self.general_result_folder, self.result_summary_folder,
                 self.data_folder, self.image_folder])
-        # self.images_folder = os.path.join(self.general_result_folder, TEXT_IMAGE)
 
         self.autoencoder = None
         self.autoencoder_file_path = os.path.join(self.autoencoder_folder,
@@ -111,7 +109,7 @@ class HPBA(Attacker):
 
     def attack(self):
         input_range = get_range_of_input(self.origin_images)
-        ae_trainee = MnistAutoEncoder(input_range=input_range)
+        ae_trainee = AutoEncoder(input_range=input_range)
 
         white_box_classifier = self.classifier if self.substitute_classifier is None else self.substitute_classifier
 
@@ -133,7 +131,7 @@ class HPBA(Attacker):
                 self.autoencoder = self.autoencoder_config.autoencoder_model
             else:
                 if self.trainX[0].shape[-1] == 3:
-                    self.autoencoder = ae_trainee.get_3d_atchitecture(input_shape=self.trainX[0].shape)
+                    self.autoencoder = ae_trainee.get_3d_architecture(input_shape=self.trainX[0].shape)
                 else:
                     self.autoencoder = ae_trainee.apdative_architecture(input_shape=self.trainX[0].shape)
 
@@ -148,25 +146,27 @@ class HPBA(Attacker):
             self.autoencoder.compile(optimizer=adam, loss=au_loss)
 
             # add callbacks and train autoencoder
-            # early_stopping = EarlyStopping(monitor='loss', verbose=0, mode='min', min_delta=0.001, patience=20)
             model_checkpoint = ModelCheckpoint(self.autoencoder_file_path,
                                                save_best_only=True, monitor='loss',
                                                mode='min')
-            sr_computation = SuccessRateComputationCallback(self.origin_images[:self.num_images_to_train],
-                                                            self.target_label,
-                                                            self.classifier,
-                                                            self.attack_stop_condition,
-                                                            self.is_untargeted(), self.origin_label,
-                                                            print_every_epoch=self.autoencoder_config.print_result_every_epochs,
-                                                            num_class=self.num_class)
+            sr_computation = SuccessRateComputationCallback(
+                self.origin_images[:self.num_images_to_train],
+                self.target_label,
+                self.classifier,
+                self.attack_stop_condition,
+                self.is_untargeted(), self.origin_label,
+                print_every_epoch=self.autoencoder_config.print_result_every_epochs,
+                num_class=self.num_class
+            )
 
-            history = self.autoencoder.fit(self.origin_images[:self.num_images_to_train],
-                                           self.origin_images[:self.num_images_to_train],
-                                           epochs=self.autoencoder_config.epochs,
-                                           batch_size=self.autoencoder_config.batch_size,
-                                           # callbacks=[model_checkpoint, sr_computation, early_stopping],
-                                           callbacks=[model_checkpoint, sr_computation],
-                                           verbose=1)
+            history = self.autoencoder.fit(
+                self.origin_images[:self.num_images_to_train],
+                self.origin_images[:self.num_images_to_train],
+                epochs=self.autoencoder_config.epochs,
+                batch_size=self.autoencoder_config.batch_size,
+                callbacks=[model_checkpoint, sr_computation],
+                verbose=1
+            )
 
             self.autoencoder.save(self.autoencoder_file_path)
             logger.debug(self.shared_log + 'training autoencoder DONE!')
@@ -208,7 +208,6 @@ class HPBA(Attacker):
                                                      epoch_to_optimize=attack_config.epoch_to_optimize,
                                                      is_untargeted=self.is_untargeted())
 
-            # self.optimized_adv = self.optimized_adv_0_255 / 255.
             self.optimized_adv = np.array(self.optimized_adv_0_255)
             np.save(self.optimized_adv_path, self.optimized_adv)
             self.optimized_adv = np.asarray(self.optimized_adv).reshape(self.adv_result.shape)
@@ -280,9 +279,7 @@ class HPBA(Attacker):
                 result += '\tL0 distance optimized (min/max/avg): ' + '{min_l0}/ {max_l0}/ {avg_l0}'.format(
                     min_l0=np.min(self.L0_afters),
                     max_l0=np.max(self.L0_afters),
-                    avg_l0=round(
-                        np.average(self.L0_afters),
-                        2))
+                    avg_l0=round(np.average(self.L0_afters), 2))
                 result += '\n'
 
             result += '\tL2 distance non-optimized (min/max/avg): ' + \
@@ -372,12 +369,12 @@ if __name__ == '__main__':
     logger.debug('pre-processing data')
     (trainX, trainY), (testX, testY) = tf.keras.datasets.mnist.load_data()
 
-    trainX, trainY = MnistPreprocessing.quick_preprocess_data(trainX, trainY, num_classes=MNIST_NUM_CLASSES,
-                                                              rows=MNIST_IMG_ROWS, cols=MNIST_IMG_COLS,
-                                                              chl=MNIST_IMG_CHL)
-    testX, testY = MnistPreprocessing.quick_preprocess_data(testX, testY, num_classes=MNIST_NUM_CLASSES,
-                                                            rows=MNIST_IMG_ROWS, cols=MNIST_IMG_COLS,
-                                                            chl=MNIST_IMG_CHL)
+    trainX, trainY = DataPreprocessing.quick_preprocess_data(trainX, trainY, num_classes=MNIST_NUM_CLASSES,
+                                                             rows=MNIST_IMG_ROWS, cols=MNIST_IMG_COLS,
+                                                             chl=MNIST_IMG_CHL)
+    testX, testY = DataPreprocessing.quick_preprocess_data(testX, testY, num_classes=MNIST_NUM_CLASSES,
+                                                           rows=MNIST_IMG_ROWS, cols=MNIST_IMG_COLS,
+                                                           chl=MNIST_IMG_CHL)
 
     np.save('../../data/mnist/mnist_training.npy', trainX)
     np.save('../../data/mnist/mnist_label.npy', trainY)

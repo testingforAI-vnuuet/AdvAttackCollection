@@ -1,10 +1,10 @@
 import numpy as np
 import tensorflow as tf
 
-from .constants import *
+from src.hpba.data_preprocessing.constants import *
 
 
-class MnistPreprocessing:
+class DataPreprocessing:
 
     def __init__(self, trainX, trainY, testX, testY, start, end, removed_labels):
         """
@@ -84,9 +84,6 @@ class MnistPreprocessing:
 
     @staticmethod
     def quick_preprocess_data(images, label, num_classes, rows, cols, chl):
-
         images = images.astype('float32') / 255.
-        return images.reshape((len(images), rows, cols, chl)), \
-               tf.keras.utils.to_categorical(label, num_classes)
+        return images.reshape((len(images), rows, cols, chl)), tf.keras.utils.to_categorical(label, num_classes)
 
-# custom

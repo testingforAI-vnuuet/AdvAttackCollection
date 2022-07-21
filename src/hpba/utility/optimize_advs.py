@@ -6,11 +6,10 @@ from itertools import accumulate
 import numpy as np
 import tensorflow as tf
 
-from attacker.constants import *
-from utility.config import attack_config
-from utility.feature_ranker import feature_ranker
-# progbar = tf.keras.utils.Progbar(len(train_data))
-from utility.utils import compute_l0, compute_distance
+from src.hpba.attacker.constants import *
+from src.hpba.utility.config import attack_config
+from src.hpba.utility.feature_ranker import feature_ranker
+from src.hpba.utility.utils import compute_l0, compute_distance
 
 
 def optimize_advs(classifier, generated_advs, origin_images, target_label, step,
