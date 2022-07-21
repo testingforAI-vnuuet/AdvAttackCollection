@@ -170,7 +170,9 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
     if display:
         plt.show()
 
-def exportAttackResult(output_folder, name, target_classifier, final_origin, final_advs, final_true_labels, logger=None):
+
+def exportAttackResult(output_folder, name, target_classifier, final_origin, final_advs, final_true_labels,
+                       logger=None):
     logger.debug('----------------------')
     logger.debug('DONE ATTACK. It is time to export the results.')
 

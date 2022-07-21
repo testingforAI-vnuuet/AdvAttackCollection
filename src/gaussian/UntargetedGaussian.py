@@ -92,13 +92,13 @@ class UntargetedGaussian:
 
 
 if __name__ == '__main__':
-    TARGET_CLASSIFIER_PATH = '/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/data/classifier/CIFAR-10/ModelA/model'
+    TARGET_CLASSIFIER_PATH = 'D:\Things\PyProject\AdvDefense\data\CIFAR10\cifar10_classifier_I.h5'
     target_classifier = keras.models.load_model(TARGET_CLASSIFIER_PATH)
 
     trainingsetX = np.load(
-        '/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/data/dataset/CIFAR-10/50ktrainingset.npy')
+        'D:\Things\PyProject\AdvDefense\data\CIFAR10\cifar10_test_data.npy')
     trainingsetY = np.load(
-        '/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/data/dataset/CIFAR-10/50ktrainingset_labels.npy')
+        'D:\Things\PyProject\AdvDefense\data\CIFAR10\cifar10_sparse_test_label.npy').reshape(-1)
 
     '''
     Just attack on correctly predicted images
@@ -108,11 +108,22 @@ if __name__ == '__main__':
     true_indexes = np.where(pred == trainingsetY)[0][:1000]
     print(f'Number of correctly predicted images = {len(true_indexes)}')
 
-    attacker = UntargetedGaussian(X=trainingsetX[true_indexes],
-                                  Y=trainingsetY[true_indexes],
-                                  target_classifier=target_classifier)
+    attacker = UntargetedGaussian(X=trainingsetX[true_indexes][:100],
+                                 Y=trainingsetY[true_indexes][:100],
+                                 target_classifier=target_classifier)
     final_origin, final_advs, final_true_labels = attacker.attack()
     utils.exportAttackResult(
-        output_folder='/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/untargeted gaussian',
-        target_classifier=target_classifier, final_advs=final_advs, final_origin=final_origin,
-        final_true_labels=final_true_labels)
+        output_folder='D:\Things\PyProject\AdvDefense\data',
+        name='bim',
+        target_classifier=target_classifier,
+        final_advs=final_advs,
+        final_origin=final_origin,
+        final_true_labels=final_true_labels,
+        logger=logger
+    )
+
+    a = np.argmax(target_classifier.predict(final_origin), axis=1).reshape(-1)
+    print((a == final_true_labels).sum() / len(a))
+
+    a = np.argmax(target_classifier.predict(final_advs), axis=1).reshape(-1)
+    print((a == final_true_labels).sum() / len(a))

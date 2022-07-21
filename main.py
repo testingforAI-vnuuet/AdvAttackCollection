@@ -5,7 +5,8 @@ from src.bis.Untargeted_BIS import UntargetedBIS
 from src.gaussian.UntargetedGaussian import UntargetedGaussian
 from src.utils.attack_logger import AttackLogger
 from src.utils.utils import exportAttackResult
-
+import tensorflow as tf
+import numpy as np
 
 logger = AttackLogger.get_logger()
 
@@ -15,10 +16,18 @@ class AdvGenerator:
 
         self.output_folder = self.config_parser.output_folder
         self.target_classifier = self.config_parser.target_classifier
-        self.images = self.config_parser.images
-        self.labels = self.config_parser.labels
+
+        self.images = self.config_parser.images[:100]
+        self.labels = self.config_parser.labels[:100]
 
         self.attack_config = self.config_parser.attack_config
+
+        pred = self.target_classifier.predict(self.images)
+        pred = np.argmax(pred, axis=1)
+        true_indexes = np.where(pred == self.labels)[0]
+        print(f'Number of correctly predicted images = {len(true_indexes)}')
+        self.images = self.images[true_indexes]
+        self.labels = self.labels[true_indexes]
 
     def attack(self):
         for key in self.attack_config.keys():
@@ -74,7 +83,6 @@ class AdvGenerator:
                 bis_config = self.attack_config[key]
                 if bis_config[ENABLE] == TRUE:
                     epsilons = bis_config[EPSILON]
-                    print(epsilons)
                     for ep in epsilons:
                         attacker = UntargetedBIS(
                             X=self.images,

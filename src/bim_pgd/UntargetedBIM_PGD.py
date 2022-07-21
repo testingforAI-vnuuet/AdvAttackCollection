@@ -130,7 +130,6 @@ class UntargetedBIM_PGD:
                 else:
                     tensor_advs = tensorflow.convert_to_tensor(advs)
 
-
         return self.final_origin, self.final_advs, self.final_true_labels
 
 
@@ -161,4 +160,12 @@ if __name__ == '__main__':
         target_classifier=target_classifier,
         final_advs=final_advs,
         final_origin=final_origin,
-        final_true_labels=final_true_labels)
+        final_true_labels=final_true_labels,
+        logger=logger
+    )
+
+    a = np.argmax(target_classifier.predict(final_origin), axis=1).reshape(-1)
+    print((a == final_true_labels).sum() / len(a))
+
+    a = np.argmax(target_classifier.predict(final_advs), axis=1).reshape(-1)
+    print((a == final_true_labels).sum() / len(a))
