@@ -197,6 +197,8 @@ def exportAttackResult(output_folder, target_classifier, final_origin, final_adv
 
     print(f'\tExporting some images to \'{img_folder}\'')
     for idx in range(0, 10):  # just plot some images for visualization
+        if idx >= len(final_advs):
+            break
         advLabel = target_classifier.predict(final_advs[idx][np.newaxis, ...])
         advLabel = np.argmax(advLabel, axis=1)[0]
 

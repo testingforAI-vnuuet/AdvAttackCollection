@@ -14,7 +14,7 @@ from src.utils import utils
 
 class UntargetedBIM_PGD:
     def __init__(self
-                 , X  # (batch, width, height, channel)
+                 , X  # (batch, width, height, channel), must be recognized correctly by the target classifier
                  , Y  # 1D, just contain labels
                  , target_classifier
                  , epsilon=1 / 255  # a positive number, from 0 to 1
