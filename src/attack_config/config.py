@@ -1,9 +1,10 @@
 import sys
 
 from configobj import ConfigObj
-from config_keys import *
+from src.attack_config.config_keys import *
 from src.utils.attack_logger import AttackLogger
 from src.utils.utils import *
+from src.utils.constants import *
 
 logger = AttackLogger().get_logger()
 
@@ -26,6 +27,8 @@ class AttackConfig:
         self.images = None
         self.labels = None
 
+        self.attack_config = {}
+
         self.untargeted_fgsm_config = None
         self.untargeted_bim_config = None
         self.untargeted_hpba_config = None
@@ -38,39 +41,43 @@ class AttackConfig:
         # analyze configurations, analyzing orders must be keep unchanged
 
         # analyze general configurations
-        if self.config_parser.__contains__(GENERAL_CONFIG):
-            self.general_config = self.config_parser[GENERAL_CONFIG]
+        if not reload:
+            if self.config_parser.__contains__(GENERAL_CONFIG):
+                self.general_config = self.config_parser[GENERAL_CONFIG]
 
-            # validate output folder path
-            self.output_folder = self.general_config[OUTPUT_FOLDER]
-            if not check_path_exists(self.output_folder):
-                mkdir(self.output_folder)
-            elif any(os.scandir(self.output_folder)):
-                logger.warning(f'Folder {self.output_folder} is not empty!')
+                # validate output folder path
+                self.output_folder = self.general_config[OUTPUT_FOLDER]
+                if not check_path_exists(self.output_folder):
+                    mkdir(self.output_folder)
+                elif any(os.scandir(self.output_folder)):
+                    logger.warning(f'Folder {self.output_folder} is not empty!')
 
-            self.pixel_range = np.array(self.general_config[PIXEL_RANGE], dtype='float32')
+                self.pixel_range = np.array(self.general_config[PIXEL_RANGE], dtype='float32')
 
-            self.load_target_classifier()
-            self.load_data()
-        else:
-            logger.error(f'Not found general configurations!')
-            sys.exit()
+                self.load_target_classifier()
+                self.load_data()
+            else:
+                logger.error(f'Not found general configurations!')
+                sys.exit()
 
         # analyze attack configuration
         if self.config_parser.__contains__(UNTARGETED_FGSM):
-            self.untargeted_fgsm_config = self.config_parser[UNTARGETED_FGSM]
+            self.attack_config[UNTARGETED_FGSM] = self.config_parser[UNTARGETED_FGSM]
 
-        if self.config_parser.__contains__(UNTARGETED_BIM):
-            self.untargeted_bim_config = self.config_parser[UNTARGETED_BIM]
+        if self.config_parser.__contains__(UNTARGETED_BIM_PGD):
+            self.attack_config[UNTARGETED_BIM_PGD] = self.config_parser[UNTARGETED_BIM_PGD]
 
         if self.config_parser.__contains__(UNTARGETED_HPBA):
-            self.untargeted_hpba_config = self.config_parser[UNTARGETED_HPBA]
+            self.attack_config[UNTARGETED_HPBA] = self.config_parser[UNTARGETED_HPBA]
 
-        if self.config_parser.__contains__(UNTARGETED_CW_L2):
-            self.untargeted_cw_l2_config = self.config_parser[UNTARGETED_CW_L2]
+        # if self.config_parser.__contains__(UNTARGETED_CW_L2):
+        #     self.attack_config[UNTARGETED_CW_L2] = self.config_parser[UNTARGETED_CW_L2]
 
-        if self.config_parser.__contains__(UNTARGETED_BIS_PGD):
-            self.untargeted_bis_pgd_config = self.config_parser[UNTARGETED_BIS_PGD]
+        if self.config_parser.__contains__(UNTARGETED_BIS):
+            self.attack_config[UNTARGETED_BIS] = self.config_parser[UNTARGETED_BIS]
+
+        if self.config_parser.__contains__(UNTARGETED_GAUSS):
+            self.attack_config[UNTARGETED_GAUSS] = self.config_parser[UNTARGETED_GAUSS]
 
         # temporarily disable to debug
         # try:
@@ -118,6 +125,8 @@ class AttackConfig:
                          f'identical to classifier\'s input shape {self.classifier_input_shape}')
             sys.exit()
 
+        self.labels = self.labels.reshape(-1)
+
         # Todo: Define general input label shape of attack methods
         # # whether label is in one-hot vector shape or not
         # # temporarily disable because of undefined input label shape of each attack method
@@ -142,6 +151,9 @@ class AttackConfig:
 
         logger.info(f'Load data complete!')
 
+    def reload_config(self):
+        self.config_parser.reload()
+        self.analyze_config(reload=True)
 
 if __name__ == '__main__':
     config = AttackConfig('D:\Things\PyProject\AdvAttackCollection\config.ini')
