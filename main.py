@@ -3,8 +3,11 @@ from src.attack_config.config_keys import *
 from src.bim_pgd.UntargetedBIM_PGD import UntargetedBIM_PGD
 from src.bis.Untargeted_BIS import UntargetedBIS
 from src.gaussian.UntargetedGaussian import UntargetedGaussian
+from src.utils.attack_logger import AttackLogger
 from src.utils.utils import exportAttackResult
 
+
+logger = AttackLogger.get_logger()
 
 class AdvGenerator:
     def __init__(self, config_filepath):
@@ -12,8 +15,8 @@ class AdvGenerator:
 
         self.output_folder = self.config_parser.output_folder
         self.target_classifier = self.config_parser.target_classifier
-        self.images = self.config_parser.images[:100]
-        self.labels = self.config_parser.labels[:100]
+        self.images = self.config_parser.images
+        self.labels = self.config_parser.labels
 
         self.attack_config = self.config_parser.attack_config
 
@@ -39,7 +42,8 @@ class AdvGenerator:
                             name=f'untargeted_fgsm_ep={ep}',
                             final_advs=final_advs,
                             final_origin=final_origin,
-                            final_true_labels=final_true_labels
+                            final_true_labels=final_true_labels,
+                            logger=logger,
                         )
 
             if key == UNTARGETED_BIM_PGD:
@@ -62,7 +66,8 @@ class AdvGenerator:
                             name=f'untargeted_bim_pgd_ep={ep}_iter={int(bim_pgd_config[MAX_ITERATION])}',
                             final_advs=final_advs,
                             final_origin=final_origin,
-                            final_true_labels=final_true_labels
+                            final_true_labels=final_true_labels,
+                            logger=logger,
                         )
 
             if key == UNTARGETED_BIS:
@@ -86,7 +91,8 @@ class AdvGenerator:
                             name=f'untargeted_bis_ep={ep}_iter={int(bis_config[MAX_ITERATION])}',
                             final_advs=final_advs,
                             final_origin=final_origin,
-                            final_true_labels=final_true_labels
+                            final_true_labels=final_true_labels,
+                            logger=logger,
                         )
 
             if key == UNTARGETED_GAUSS:
@@ -109,7 +115,8 @@ class AdvGenerator:
                             name=f'untargeted_gauss_ep={ep}_iter={int(gauss_config[MAX_ITERATION])}',
                             final_advs=final_advs,
                             final_origin=final_origin,
-                            final_true_labels=final_true_labels
+                            final_true_labels=final_true_labels,
+                            logger=logger,
                         )
 
 

@@ -159,12 +159,10 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
     fig1 = fig.add_subplot(1, 2, 1)
     fig1.title.set_text(left_title)
     plt.imshow(x_28_28_left)
-    # plt.imshow(x_28_28_left)
 
     fig2 = fig.add_subplot(1, 2, 2)
     fig2.title.set_text(right_title)
     plt.imshow(x_28_28_right)
-    # plt.imshow(x_28_28_right)
 
     if path is not None:
         plt.savefig(path, pad_inches=0, bbox_inches='tight', dpi=600)
@@ -172,9 +170,9 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
     if display:
         plt.show()
 
-def exportAttackResult(output_folder, name, target_classifier, final_origin, final_advs, final_true_labels):
-    print('----------------------')
-    print('DONE ATTACK. It is time to export the results.')
+def exportAttackResult(output_folder, name, target_classifier, final_origin, final_advs, final_true_labels, logger=None):
+    logger.debug('----------------------')
+    logger.debug('DONE ATTACK. It is time to export the results.')
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -183,22 +181,43 @@ def exportAttackResult(output_folder, name, target_classifier, final_origin, fin
     if not os.path.exists(origin_path):
         os.makedirs(origin_path)
     origin_file_path = f'{origin_path}/{name}_origins'
-    print(f'\tExporting original images to \'{origin_file_path}')
+    logger.debug(f'\tExporting original images to \'{origin_file_path}')
     np.save(origin_file_path, final_origin)
 
     advs_path = f'{output_folder}/advs'
     if not os.path.exists(advs_path):
         os.makedirs(advs_path)
     advs_file_path = f'{advs_path}/{name}_advs'
-    print(f'\tExporting adversarial images to \'{advs_file_path}')
+    logger.debug(f'\tExporting adversarial images to \'{advs_file_path}')
     np.save(advs_file_path, final_advs)
 
     label_path = f'{output_folder}/labels'
     if not os.path.exists(label_path):
         os.makedirs(label_path)
     label_file_path = f'{label_path}/{name}_labels'
-    print(f'\tExporting ground-truth labels of images to \'{label_file_path}')
+    logger.debug(f'\tExporting ground-truth labels of images to \'{label_file_path}')
     np.save(label_file_path, final_true_labels)
+
+    n_images = 10 if len(final_origin) > 10 else len(final_origin)
+
+    images_path = f'{output_folder}/examples/{name}'
+    if not os.path.exists(images_path):
+        os.makedirs(images_path)
+    logger.debug(f'\tExporting ground-truth labels of images to \'{images_path}')
+
+    for idx in range(0, n_images):  # just plot some images for visualization
+        if idx >= len(final_advs):
+            break
+        advLabel = target_classifier.predict(final_advs[idx][np.newaxis, ...])
+        advLabel = np.argmax(advLabel, axis=1)[0]
+
+        show_two_images_3D(final_origin[idx],
+                           final_advs[idx],
+                           left_title=f'origin\n(label {final_true_labels[idx]})',
+                           right_title=f'adv\n(label {advLabel})',
+                           display=False,
+                           path=f'{images_path}/img {idx}')
+
 
 def compute_gradient_batch(inputs: tf.Tensor, target_neurons, target_classifier):
     with tf.GradientTape(persistent=True) as tape:
