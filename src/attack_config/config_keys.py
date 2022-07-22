@@ -11,7 +11,7 @@ LABELS_DATA_PATH = 'labels_data_path'
 
 UNTARGETED_FGSM = 'Untargeted FGSM'
 UNTARGETED_MI_FGSM = 'Untargeted MI FGSM'
-UNTARGETED_BIM_PGD = 'Untargeted BIM_PGD'
+UNTARGETED_BIM_PGD = 'Untargeted BIM PGD'
 HPBA_ATTACK = 'HPBA'
 UNTARGETED_CW_L2 = 'Untargeted CW L2'
 UNTARGETED_BIS = 'Untargeted BIS'
