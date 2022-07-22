@@ -51,7 +51,7 @@ def filter_by_label(label: int, data_set: np.ndarray, label_set: np.ndarray) -> 
         elif (isinstance(label_i, np.int) or isinstance(label_i, np.float32)) and label == int(label_i):
             result_data.append(data_i)
             result_label.append(label_i)
-            print('ok')
+            # print('ok')
 
     logger.debug("Filtering for label DONE!")
     return np.array(result_data), np.array(result_label)

@@ -144,7 +144,7 @@ class HPBA(Attacker):
             adam = tf.keras.optimizers.Adam(learning_rate=self.autoencoder_config.learning_rate, beta_1=0.9,
                                             beta_2=0.999, amsgrad=False)
 
-            au_loss = AE_LOSSES.general_loss(classifier=white_box_classifier, target_vector=self.target_vector,
+            au_loss = AE_LOSSES.general_loss(classifier=white_box_classifier,
                                              beta=self.weight, input_shape=self.trainX[0].shape,
                                              is_untargeted=self.is_untargeted(), quality_loss_str=self.quality_loss_str,
                                              num_class=self.num_class)
@@ -170,7 +170,8 @@ class HPBA(Attacker):
                                            batch_size=self.autoencoder_config.batch_size,
                                            # callbacks=[model_checkpoint, sr_computation, early_stopping],
                                            callbacks=[model_checkpoint, sr_computation],
-                                           verbose=1)
+                                           verbose=1,
+                                           shuffle=True)
 
             self.autoencoder.save(self.autoencoder_file_path)
             logger.debug(self.shared_log + 'training autoencoder DONE!')

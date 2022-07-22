@@ -502,6 +502,6 @@ def confirm_adv_attack(target_classifier,
         min = np.round(np.min(ssims), 2)
         max = np.round(np.max(ssims), 2)
         avg = np.round(np.average(ssims), 2)
-        logger.debug(f'SSIM min/max/avg = {min: 0.2f} / {max: 0.2f} / {avg: 0.2f} (close to 1 is better)')
+        logger.debug(f'SSIM min/max/avg = {min: 0.2f} / {max: 0.2f} / {avg: 0.2f} (larger value is better)')
     except Exception:
         return

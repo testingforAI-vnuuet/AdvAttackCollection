@@ -74,9 +74,13 @@ class Attacker:
         #         self.target_label = label_ranking(self.origin_images, self.classifier)[-1 * self.target_position]
 
         self.shared_time_stamp = get_timestamp()
-        self.target_vector = tf.keras.utils.to_categorical(self.target_label, self.num_class,
-                                                           dtype='float32') if num_class > 1 else np.array(
-            self.target_label, dtype='float32')
+        # if self.target_label != -1:
+        #     self.target_vector = tf.keras.utils.to_categorical(self.target_label, self.num_class,
+        #                                                    dtype='float32') if num_class > 1 else np.array(
+        #     self.target_label, dtype='float32')
+        # else:
+        #     self.target_vector = tf.keras.utils.to_categorical(self.origin_labels, self.num_class)
+
         self.origin_label_vector = tf.keras.utils.to_categorical(self.origin_label, self.num_class)
         self.general_result_folder = outputFolder  # os.path.abspath(os.path.join(RESULT_FOLDER_PATH, self.method_name))
         self.result_summary_folder = os.path.join(self.general_result_folder, TEXT_RESULT_SUMMARY)
