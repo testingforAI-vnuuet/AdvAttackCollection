@@ -64,12 +64,11 @@ class HPBA(Attacker):
 
         self.weight = weight
         self.step_to_recover = step_to_recover
-        self.num_images_to_attack = num_images_to_attack if len(self.origin_images) > num_images_to_train else len(
-            self.origin_images)
+        self.num_images_to_attack = len(self.origin_images[:num_images_to_attack])
         # self.max_number_advs_to_optimize = max_number_advs_to_optimize
 
         self.pattern = pattern
-        self.num_images_to_train = num_images_to_train
+        self.num_images_to_train = len(self.origin_images[:num_images_to_train])
         self.autoencoder_config = autoencoder_config
         self.is_data_inside_0_1_or_0_255 = check_inside_range(self.origin_images,
                                                               checked_range=(0, 1)) or check_inside_range(

@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 import tensorflow
+from tqdm import tqdm
 
 from src.utils import utils
 from src.utils.attack_logger import AttackLogger
@@ -25,7 +26,7 @@ class UntargetedBIM_PGD:
                  , max_iteration=10  # a positive number, integer
                  , lower_pixel_value=0  # the valid lower range of a pixel
                  , upper_pixel_value=1  # the valid upper range of a pixel
-                 , max_norm=1 / 255
+                 , max_ball=1 / 255
                  ):
         self.X = X
         self.Y = Y
@@ -36,7 +37,7 @@ class UntargetedBIM_PGD:
 
         self.lower_pixel_value = lower_pixel_value
         self.upper_pixel_value = upper_pixel_value
-        self.max_norm = max_norm
+        self.max_norm = max_ball
 
         self.final_advs = None
         self.final_true_labels = None
@@ -46,7 +47,7 @@ class UntargetedBIM_PGD:
         '''
         Attack
         '''
-        logger.debug(f'ep={self.epsilon}, max_iter={self.max_iteration}')
+        # logger.debug(f'ep={self.epsilon}, max_iter={self.max_iteration}')
         X = self.X
         ep = self.epsilon
         batch_size = self.batch_size
@@ -57,7 +58,8 @@ class UntargetedBIM_PGD:
         lower_pixel_value = self.lower_pixel_value
         max_norm = self.max_norm
         n_batchs = int(np.ceil(len(X) / batch_size))
-        for idx in range(n_batchs):
+        for idx in tqdm(range(n_batchs), desc=f'Attacking batch of {self.batch_size} images:...'):
+        # for idx in range(n_batchs):
             '''
             Computing batch range
             '''
@@ -65,7 +67,7 @@ class UntargetedBIM_PGD:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            logger.debug(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
+            #logger.debug(f'[{idx + 1} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
@@ -76,8 +78,8 @@ class UntargetedBIM_PGD:
             min = advs - max_norm
             max = advs + max_norm
 
-            while iter >= 0:
-                logger.debug(f'\tIteration {iter}')
+            while iter >= 1:
+                #logger.debug(f'\tIteration {max_iteration - iter + 1}')
                 # compute gradient
                 gradient, tape = utils.compute_gradient_batch(inputs=tensor_advs,
                                                               target_neurons=Y[start: end],
@@ -113,8 +115,8 @@ class UntargetedBIM_PGD:
                 iter -= 1
                 sr = np.sum(isDiffLabels) / len(Y[start: end])
 
-                if sr == 1 or iter < 0:
-                    logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
+                if sr == 1 or iter <= 0:
+                    #logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
 
                     satisfied = np.where(isDiffLabels)[0]
                     if self.final_advs is None:
@@ -130,6 +132,8 @@ class UntargetedBIM_PGD:
                 else:
                     tensor_advs = tensorflow.convert_to_tensor(advs)
 
+        utils.confirm_adv_attack(self.target_classifier, self.final_advs, self.final_origin, self.final_true_labels,
+                                 self.X)
         return self.final_origin, self.final_advs, self.final_true_labels
 
 

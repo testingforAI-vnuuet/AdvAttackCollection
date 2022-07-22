@@ -8,6 +8,10 @@ import cv2
 import numpy as np
 import sys
 import tensorflow as tf
+
+from src.utils.attack_logger import AttackLogger
+
+logger = AttackLogger.get_logger()
 from src.utils.constants import *
 from matplotlib import pyplot as plt
 
@@ -169,6 +173,7 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
 
     if display:
         plt.show()
+    plt.close()
 
 
 def exportAttackResult(output_folder, name, target_classifier, final_origin, final_advs, final_true_labels,
@@ -183,21 +188,21 @@ def exportAttackResult(output_folder, name, target_classifier, final_origin, fin
     if not os.path.exists(origin_path):
         os.makedirs(origin_path)
     origin_file_path = f'{origin_path}/{name}_origins'
-    logger.debug(f'\tExporting original images to \'{origin_file_path}')
+    logger.debug(f'\t\tExporting original images to \'{origin_file_path}')
     np.save(origin_file_path, final_origin)
 
     advs_path = f'{output_folder}/advs'
     if not os.path.exists(advs_path):
         os.makedirs(advs_path)
     advs_file_path = f'{advs_path}/{name}_advs'
-    logger.debug(f'\tExporting adversarial images to \'{advs_file_path}')
+    logger.debug(f'\t\tExporting adversarial images to \'{advs_file_path}')
     np.save(advs_file_path, final_advs)
 
     label_path = f'{output_folder}/labels'
     if not os.path.exists(label_path):
         os.makedirs(label_path)
     label_file_path = f'{label_path}/{name}_labels'
-    logger.debug(f'\tExporting ground-truth labels of images to \'{label_file_path}')
+    logger.debug(f'\t\tExporting ground-truth labels of images to \'{label_file_path}')
     np.save(label_file_path, final_true_labels)
 
     n_images = 10 if len(final_origin) > 10 else len(final_origin)
@@ -205,7 +210,7 @@ def exportAttackResult(output_folder, name, target_classifier, final_origin, fin
     images_path = f'{output_folder}/examples/{name}'
     if not os.path.exists(images_path):
         os.makedirs(images_path)
-    logger.debug(f'\tExporting ground-truth labels of images to \'{images_path}')
+    logger.debug(f'\t\tExporting some examples to \'{images_path}')
 
     for idx in range(0, n_images):  # just plot some images for visualization
         if idx >= len(final_advs):
@@ -447,3 +452,56 @@ def validate_images_folder(images_folder_path: str):
             return False, f'Sub data folder is not valid: {path}'
 
     return True, f'Data folder is valid: {images_folder_path}'
+
+def confirm_adv_attack(target_classifier,
+                       final_advs,
+                       final_origin,
+                       final_true_labels,
+                       X # correctly predicted images
+                       ):
+    '''
+    Confirm again
+    '''
+    try:
+        logger.debug('Confirming the result:')
+        if final_advs is None or len(final_advs) == 0:
+            logger.debug("\t\tThere is no generated adversarial examples. Overall success rate = 0%")
+            return
+
+        pred_adv = target_classifier.predict(final_advs)
+        pred_adv = np.argmax(pred_adv, axis=1)
+
+        pred_ori = target_classifier.predict(final_origin)
+        pred_ori = np.argmax(pred_ori, axis=1)
+        logger.debug(f'\t\t#Origins = {len(X)}')
+
+        tmp = np.sum(pred_ori != final_true_labels)
+        logger.debug(f'\t\t#Invalid true labels = {tmp}')
+
+        tmp = np.sum(pred_adv == pred_ori)
+        logger.debug(f'\t\t#Invalid adversarial examples = {tmp}')
+
+        tmp = np.sum(pred_adv != pred_ori)
+        logger.debug(f'\t\t#Valid adversarial examples = {tmp}')
+
+        logger.debug(f'The overall success rate = {np.round(len(pred_adv) / len(X) * 100, 2)}%.')
+
+        l0s = compute_l0s(final_advs, final_origin, n_features=final_advs.shape[1] * final_advs.shape[2] * final_advs.shape[3])
+        min = np.min(l0s)
+        max = np.max(l0s)
+        avg = np.round(np.average(l0s), 2)
+        logger.debug(f'L0 min/max/avg = {min} / {max} / {avg: 0.2f} (close to 0 is better)')
+
+        l2s = compute_l2s(final_advs, final_origin, n_features=final_advs.shape[1] * final_advs.shape[2] * final_advs.shape[3])
+        min = np.round(np.min(l2s), 2)
+        max = np.round(np.max(l2s), 2)
+        avg = np.round(np.average(l2s), 2)
+        logger.debug(f'L2 min/max/avg = {min: 0.2f} / {max: 0.2f} / {avg: 0.2f} (close to 0 is better)')
+
+        ssims = compute_ssim(final_advs, final_origin)
+        min = np.round(np.min(ssims), 2)
+        max = np.round(np.max(ssims), 2)
+        avg = np.round(np.average(ssims), 2)
+        logger.debug(f'SSIM min/max/avg = {min: 0.2f} / {max: 0.2f} / {avg: 0.2f} (close to 1 is better)')
+    except Exception:
+        return

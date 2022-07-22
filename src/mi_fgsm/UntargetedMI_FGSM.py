@@ -6,7 +6,8 @@ Reference: Boosting Adversarial Attacks with Momentum, 2018
 import numpy as np
 import tensorflow
 from tensorflow import keras
-
+from tqdm import tqdm
+from src.attack_config.config import logger
 from src.utils import utils
 
 
@@ -53,7 +54,8 @@ class UntargetedMI_FGSM:
         decay_factor = self.decay_factor
 
         n_batchs = int(np.ceil(len(X) / batch_size))
-        for idx in range(n_batchs):
+        # for i in tqdm(range(0, len(x), self.batch_size), desc='Attacking:...'):
+        for idx in tqdm(range(n_batchs), desc=f'Attacking batch of {self.batch_size} images:...'):
             '''
             Computing batch range
             '''
@@ -61,7 +63,7 @@ class UntargetedMI_FGSM:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            print(f'[{idx + 1} / {n_batchs}] Attacking from {start} to {end}')
+            # logger.debug(f'[{idx + 1} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
@@ -71,8 +73,8 @@ class UntargetedMI_FGSM:
             velocity = np.zeros(shape=(end - start, advs.shape[1], advs.shape[2], advs.shape[3])) # (batch, width, height, channel)
             tensor_advs = tensorflow.convert_to_tensor(advs)
 
-            while iter >= 0:
-                print(f'\tIteration {iter}')
+            while iter >= 1:
+                # logger.debug(f'\tIteration {max_iteration - iter + 1}')
 
                 # compute gradient
                 gradient, tape = utils.compute_gradient_batch(inputs=tensor_advs,
@@ -106,8 +108,8 @@ class UntargetedMI_FGSM:
                 iter -= 1
                 sr = np.sum(isDiffLabels) / len(Y[start: end])
 
-                if sr == 1 or iter < 0:
-                    print(f'\tAttacking this batch done. Success rate = {sr * 100}%')
+                if sr == 1 or iter <= 0:
+                    # logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
 
                     satisfied = np.where(isDiffLabels)[0]
                     if self.final_advs is None:
@@ -123,6 +125,8 @@ class UntargetedMI_FGSM:
                     break
                 else:
                     tensor_advs = tensorflow.convert_to_tensor(advs)
+
+        utils.confirm_adv_attack(self.target_classifier, self.final_advs, self.final_origin, self.final_true_labels, self.X)
 
         return self.final_origin, self.final_advs, self.final_true_labels
 

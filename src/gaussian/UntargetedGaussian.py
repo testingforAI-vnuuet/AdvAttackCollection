@@ -1,5 +1,6 @@
 import numpy as np
 from tensorflow import keras
+from tqdm import tqdm
 
 from src.utils import utils
 from src.utils.attack_logger import AttackLogger
@@ -42,7 +43,8 @@ class UntargetedGaussian:
 
         n_batchs = int(np.ceil(len(X) / batch_size))
 
-        for idx in range(n_batchs):
+        for idx in tqdm(range(n_batchs), desc=f'Attacking batch of {self.batch_size} images:...'):
+        # for idx in range(n_batchs):
             '''
             Computing batch range
             '''
@@ -50,17 +52,17 @@ class UntargetedGaussian:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            logger.debug(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
+            # logger.debug(f'[{idx + 1} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
             '''
             iter = max_iteration
             advs = X[start: end].copy()
-            not_satisfied = np.arange(start, end)
+            not_satisfied = np.arange(0, end - start)
             adv_labels = Y[start:end].copy()
-            while iter >= 0:
-                logger.debug(f'\tIteration {iter}')
+            while iter >= 1:
+                # logger.debug(f'\tIteration {max_iteration - iter + 1}')
                 noise = epsilon * np.random.normal(size=(len(not_satisfied), X.shape[1], X.shape[2], X.shape[3]))
                 advs[not_satisfied] = np.clip(advs[not_satisfied] + noise, lower_pixel_value, upper_pixel_value)
 
@@ -69,7 +71,7 @@ class UntargetedGaussian:
                 adv_labels[not_satisfied] = pred
                 not_satisfied = np.where(adv_labels == Y[start:end])[0]
                 satisfied = np.where(adv_labels != Y[start:end])[0]
-                logger.debug(f'\t\t Success rate of this batch = {np.round(len(satisfied) / len(adv_labels) * 100, 2)}%')
+                # logger.debug(f'\t\t Success rate of this batch = {np.round(len(satisfied) / len(adv_labels) * 100, 2)}%')
 
                 if len(not_satisfied) == 0:
                     break
@@ -88,6 +90,9 @@ class UntargetedGaussian:
                 self.final_origin = np.concatenate((self.final_origin, X[start:end][satisfied]), axis=0)
                 self.final_true_labels = np.concatenate((self.final_true_labels, Y[start:end][satisfied]),
                                                         axis=0)
+
+        utils.confirm_adv_attack(self.target_classifier, self.final_advs, self.final_origin, self.final_true_labels,
+                                 self.X)
         return self.final_origin, self.final_advs, self.final_true_labels
 
 

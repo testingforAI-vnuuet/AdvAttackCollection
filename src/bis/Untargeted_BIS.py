@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 import tensorflow
+from tqdm import tqdm
 
 from src.utils import utils
 from src.utils.attack_logger import AttackLogger
@@ -44,7 +45,7 @@ class UntargetedBIS:
         '''
         Attack
         '''
-        logger.debug(f'ep={self.epsilon}, max_iter={self.max_iteration}')
+        # logger.debug(f'ep={self.epsilon}, max_iter={self.max_iteration}')
         logger.debug(f'')
         X = self.X
         ep = self.epsilon
@@ -56,7 +57,8 @@ class UntargetedBIS:
         lower_pixel_value = self.lower_pixel_value
 
         n_batchs = int(np.ceil(len(X) / batch_size))
-        for idx in range(n_batchs):
+        for idx in tqdm(range(n_batchs), desc=f'Attacking batch of {self.batch_size} images:...'):
+        # for idx in range(n_batchs):
             '''
             Computing batch range
             '''
@@ -64,7 +66,7 @@ class UntargetedBIS:
             end = start + batch_size
             if end > len(X):
                 end = len(X)
-            logger.debug(f'[{idx} / {n_batchs}] Attacking from {start} to {end}')
+            #logger.debug(f'[{idx + 1} / {n_batchs}] Attacking from {start} to {end}')
 
             '''
             Attack
@@ -73,8 +75,8 @@ class UntargetedBIS:
             advs = X[start: end].copy()
             tensor_advs = tensorflow.convert_to_tensor(advs)
 
-            while iter >= 0:
-                logger.debug(f'\tIteration {iter}')
+            while iter >= 1:
+                #logger.debug(f'\tIteration {max_iteration - iter + 1}')
                 # compute gradient
                 gradient, tape = utils.compute_gradient_batch(inputs=tensor_advs,
                                                              target_neurons=Y[start: end],
@@ -97,8 +99,8 @@ class UntargetedBIS:
                 iter -= 1
                 sr = np.sum(isDiffLabels) / len(Y[start: end])
 
-                if sr == 1 or iter < 0:
-                    logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
+                if sr == 1 or iter <= 0:
+                    #logger.debug(f'\tAttacking this batch done. Success rate = {sr * 100}%')
 
                     satisfied = np.where(isDiffLabels)[0]
                     if self.final_advs is None:
@@ -115,6 +117,8 @@ class UntargetedBIS:
                 else:
                     tensor_advs = tensorflow.convert_to_tensor(advs)
 
+        utils.confirm_adv_attack(self.target_classifier, self.final_advs, self.final_origin, self.final_true_labels,
+                                 self.X)
         return self.final_origin, self.final_advs, self.final_true_labels
 
 

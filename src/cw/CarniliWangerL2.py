@@ -7,6 +7,8 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 
+from src.attack_config.config import logger
+
 
 class CarliniWagnerL2Exception(Exception):
     pass
@@ -100,6 +102,11 @@ class CarliniWagnerL2(object):
             adv_ex[i: i + self.batch_size] = self._attack(
                 x[i: i + self.batch_size]
             ).numpy()
+
+        # for i in tqdm(range(0, len(x), self.batch_size), desc='Attacking:...'):
+        #     adv_ex[i: i + self.batch_size] = self._attack(
+        #         x[i: i + self.batch_size]
+        #     ).numpy()
         adv_pred = np.argmax(self.model_fn.predict(adv_ex), axis=1).reshape(-1)
         adv_idx = np.where(adv_pred != y)
 
@@ -159,6 +166,7 @@ class CarliniWagnerL2(object):
         modifier = tf.Variable(tf.zeros(shape, dtype=x.dtype), trainable=True)
 
         for outer_step in range(self.binary_search_steps):
+            # logger.debug(f'Outer step = {outer_step} / {self.binary_search_steps}')
             # at each iteration reset variable state
             modifier.assign(tf.zeros(shape, dtype=x.dtype))
             for var in self.optimizer.variables():
