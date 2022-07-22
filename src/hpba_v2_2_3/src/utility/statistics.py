@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow import keras
 
-from src.hpba_v2_2_3.src.utility.mylogger import MyLogger
+from src.utils.attack_logger import AttackLogger
 
-logger = MyLogger.getLog()
+logger = AttackLogger.get_logger()
 
 
 def countSamples(probability_vector, n_class):

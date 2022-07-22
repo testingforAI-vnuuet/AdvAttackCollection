@@ -4,13 +4,12 @@ import random
 from tensorflow import keras
 from tensorflow.keras.datasets import mnist
 from tensorflow.python.keras import Sequential
-import numpy as np
-from src.hpba_v2_2_3.src.attacker.constants import CLASSIFIER_PATH
 from src.hpba_v2_2_3.src.data_preprocessing.mnist import MnistPreprocessing
-from src.hpba_v2_2_3.src.utility.mylogger import MyLogger
-
-logger = MyLogger.getLog()
 from src.hpba_v2_2_3.src.utility.config import *
+from src.utils.attack_logger import AttackLogger
+
+logger = AttackLogger.get_logger()
+
 
 
 class RANKING_ALGORITHM(enum.Enum):

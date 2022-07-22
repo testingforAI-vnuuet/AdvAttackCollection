@@ -9,7 +9,6 @@ import tensorflow as tf
 from src.hpba_v2_2_3.src.attacker.constants import *
 from src.hpba_v2_2_3.src.utility.config import attack_config
 from src.hpba_v2_2_3.src.utility.feature_ranker import feature_ranker
-# progbar = tf.keras.utils.Progbar(len(train_data))
 from src.hpba_v2_2_3.src.utility.utils import compute_l0, compute_distance
 
 

@@ -64,14 +64,17 @@ class AttackConfig:
         if self.config_parser.__contains__(UNTARGETED_FGSM):
             self.attack_config[UNTARGETED_FGSM] = self.config_parser[UNTARGETED_FGSM]
 
+            if self.config_parser.__contains__(UNTARGETED_MI_FGSM):
+                self.attack_config[UNTARGETED_MI_FGSM] = self.config_parser[UNTARGETED_MI_FGSM]
+
         if self.config_parser.__contains__(UNTARGETED_BIM_PGD):
             self.attack_config[UNTARGETED_BIM_PGD] = self.config_parser[UNTARGETED_BIM_PGD]
 
-        if self.config_parser.__contains__(UNTARGETED_HPBA):
-            self.attack_config[UNTARGETED_HPBA] = self.config_parser[UNTARGETED_HPBA]
+        if self.config_parser.__contains__(HPBA_ATTACK):
+            self.attack_config[HPBA_ATTACK] = self.config_parser[HPBA_ATTACK]
 
-        # if self.config_parser.__contains__(UNTARGETED_CW_L2):
-        #     self.attack_config[UNTARGETED_CW_L2] = self.config_parser[UNTARGETED_CW_L2]
+        if self.config_parser.__contains__(UNTARGETED_CW_L2):
+            self.attack_config[UNTARGETED_CW_L2] = self.config_parser[UNTARGETED_CW_L2]
 
         if self.config_parser.__contains__(UNTARGETED_BIS):
             self.attack_config[UNTARGETED_BIS] = self.config_parser[UNTARGETED_BIS]

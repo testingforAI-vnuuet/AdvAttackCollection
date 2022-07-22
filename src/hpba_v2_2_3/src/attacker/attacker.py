@@ -4,17 +4,17 @@ Feature:
 """
 import os.path
 import time
-import tensorflow as tf
+
 import numpy as np
+import tensorflow as tf
 
 from src.hpba_v2_2_3.src.attacker.constants import *
 from src.hpba_v2_2_3.src.classifier.substitute_classifier import SubstituteClassifier
-
-from src.hpba_v2_2_3.src.utility.mylogger import MyLogger
-from src.hpba_v2_2_3.src.utility.statistics import filter_by_label, label_ranking
+from src.hpba_v2_2_3.src.utility.statistics import filter_by_label
 from src.hpba_v2_2_3.src.utility.utils import mkdirs, get_timestamp
+from src.utils.attack_logger import AttackLogger
 
-logger = MyLogger.getLog()
+logger = AttackLogger.get_logger()
 
 
 class Attacker:
@@ -31,7 +31,7 @@ class Attacker:
                  attack_type=ATTACK_WHITEBOX_TYPE,
                  quality_loss_str=LOSS_MSE,
                  attack_stop_condition=None,
-                 outputFolder = None):
+                 outputFolder=None):
         self.start_time = time.time()
         self.end_time = None
         self.origin_label = origin_label
@@ -50,7 +50,7 @@ class Attacker:
         self.attack_stop_condition = attack_stop_condition
 
         self.substitute_classifier = substitute_classifier
-        self.outputFolder = outputFolder
+        # self.outputFolder = outputFolder
 
         # if self.attack_type == ATTACK_BLACKBOX_TYPE:
         #     # blackbox
@@ -63,7 +63,7 @@ class Attacker:
 
         if self.origin_label != -1:
             self.origin_images, self.origin_labels = filter_by_label(label=self.origin_label, data_set=self.trainX,
-                                                                    label_set=self.trainY)
+                                                                     label_set=self.trainY)
         else:
             self.origin_images = self.trainX
             self.origin_label = -1
@@ -78,7 +78,7 @@ class Attacker:
                                                            dtype='float32') if num_class > 1 else np.array(
             self.target_label, dtype='float32')
         self.origin_label_vector = tf.keras.utils.to_categorical(self.origin_label, self.num_class)
-        self.general_result_folder = outputFolder #os.path.abspath(os.path.join(RESULT_FOLDER_PATH, self.method_name))
+        self.general_result_folder = outputFolder  # os.path.abspath(os.path.join(RESULT_FOLDER_PATH, self.method_name))
         self.result_summary_folder = os.path.join(self.general_result_folder, TEXT_RESULT_SUMMARY)
         self.data_folder = os.path.join(self.general_result_folder, TEXT_DATA)
         self.image_folder = os.path.join(self.general_result_folder, TEXT_IMAGE)

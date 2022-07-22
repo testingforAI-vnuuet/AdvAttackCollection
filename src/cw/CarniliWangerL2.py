@@ -89,7 +89,7 @@ class CarliniWagnerL2(object):
 
         super(CarliniWagnerL2, self).__init__()
 
-    def attack(self, x):
+    def attack(self, x, y):
         """
         Returns adversarial examples for the tensor.
         :param x: input tensor.
@@ -100,8 +100,10 @@ class CarliniWagnerL2(object):
             adv_ex[i: i + self.batch_size] = self._attack(
                 x[i: i + self.batch_size]
             ).numpy()
+        adv_pred = np.argmax(self.model_fn.predict(adv_ex), axis=1).reshape(-1)
+        adv_idx = np.where(adv_pred != y)
 
-        return adv_ex
+        return x[adv_idx], adv_ex[adv_idx], y[adv_idx]
 
     def _attack(self, x):
         if self.clip_min is not None:

@@ -1,8 +1,8 @@
 import os
 import sys
 
-from hpba import HPBA
-from src.hpba_v2_2_3.src.utility.mylogger import MyLogger
+from src.hpba_v2_2_3.src.attacker.hpba import HPBA
+from src.utils.attack_logger import AttackLogger
 
 module_path = os.path.abspath(os.getcwd() + '/src')
 if module_path not in sys.path:
@@ -13,13 +13,13 @@ from src.hpba_v2_2_3.src.utility.config import attack_config, analyze_config
 import tensorflow as tf
 
 tf.config.run_functions_eagerly(True)
-logger = MyLogger().getLog()
+logger = AttackLogger().get_logger()
 
 if __name__ == '__main__':
     logger.debug('robustness START')
     logger.debug('reading configuration')
 
-    analyze_config('/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/src/hpba_v2_2_3/config.ini')
+    analyze_config('D:\Things\PyProject\AdvAttackCollection\src\hpba_v2_2_3\config.ini')
     logger.debug('reading configuration DONE')
 
     attacker = HPBA(origin_label=attack_config.original_class, trainX=attack_config.training_data,
@@ -38,9 +38,10 @@ if __name__ == '__main__':
                                            attack_config.SSIM_threshold_to_stop_attack),
                     autoencoder_config=attack_config.autoencoder_config,
                     quality_loss_str=attack_config.quality_loss,
-                    outputFolder='/Users/ducanhnguyen/Documents/testingforAI-vnuuet/AdvAttackCollection/hpba_output'
+                    outputFolder='D:\Things\PyProject\AdvAttackCollection\src\output'
                     )
 
     attacker.attack()
+
     attacker.plot_some_random_images()
     attacker.plot_some_random_images_v2()

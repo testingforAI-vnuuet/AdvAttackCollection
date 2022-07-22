@@ -5,8 +5,6 @@ import random
 import time
 import warnings
 from tensorflow.python.keras.callbacks import ModelCheckpoint
-
-import utils
 from src.hpba_v2_2_3.src.attacker.SuccessRateComputationCallback import SuccessRateComputationCallback
 from src.hpba_v2_2_3.src.attacker.autoencoder import MnistAutoEncoder
 from src.hpba_v2_2_3.src.utility.autoencoder_config import AutoencoderConfig
@@ -23,7 +21,9 @@ from src.hpba_v2_2_3.src.utility.utils import *
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
 tf.config.experimental_run_functions_eagerly(True)
 
-logger = MyLogger.getLog()
+from src.utils.attack_logger import AttackLogger
+
+logger = AttackLogger.get_logger()
 
 
 class HPBA(Attacker):
@@ -44,7 +44,7 @@ class HPBA(Attacker):
                  attack_type=ATTACK_WHITEBOX_TYPE,
                  substitute_classifier_name=None,
                  attack_stop_condition=None, autoencoder_config: AutoencoderConfig = None, quality_loss_str=LOSS_MSE,
-                 outputFolder = None):
+                 outputFolder=None):
 
         super().__init__(trainX=trainX,
                          trainY=trainY,
@@ -59,7 +59,8 @@ class HPBA(Attacker):
                          origin_label=origin_label,
                          attack_stop_condition=attack_stop_condition,
                          quality_loss_str=quality_loss_str,
-                         outputFolder = outputFolder)
+                         outputFolder=outputFolder
+                         )
 
         self.weight = weight
         self.step_to_recover = step_to_recover
@@ -126,7 +127,7 @@ class HPBA(Attacker):
                                                           custom_objects={
                                                               'range_custom_activation': wrap_range_custom_activation(
                                                                   min_value=input_range[0], max_value=input_range[1])
-                                                             })
+                                                          })
 
         else:
             logger.debug(self.shared_log +
@@ -205,8 +206,8 @@ class HPBA(Attacker):
             self.optimized_adv_0_255 = optimize_advs(classifier=optimized_classifier,
                                                      generated_advs=self.adv_result,
                                                      origin_images=self.origin_adv_result,
-                                                     target_label=self.target_label, # is a number
-                                                     origin_label=self.origin_label, # is a number
+                                                     target_label=self.target_label,  # is a number
+                                                     origin_label=self.origin_label,  # is a number
                                                      origin_labels=result_origin_labels_vector,  # one-hot vector
                                                      step=actual_recover_step, num_class=self.num_class,
                                                      ranking_type=ranking_strategy,
@@ -349,20 +350,20 @@ class HPBA(Attacker):
                 optimized_adv_label = np.argmax(self.classifier.predict(tmp_optimized[idx][np.newaxis, ...]),
                                                 axis=1)
                 show_three_images_3D(x_28_28_left=self.origin_adv_result[idx],
-                                           x_28_28_mid=self.adv_result[idx],
-                                           x_28_28_right=tmp_optimized[idx],
-                                           left_title=f'clean\n(label = {clean_label})',
-                                           mid_title=f'non-optimized adv\n(label = {non_optimized_adv_label})',
-                                           right_title=f'optimized adv\n(label = {optimized_adv_label})',
-                                           display=False,
-                                           path=self.image_path.replace(".png", "") + str(idx) + ".png")
+                                     x_28_28_mid=self.adv_result[idx],
+                                     x_28_28_right=tmp_optimized[idx],
+                                     left_title=f'clean\n(label = {clean_label})',
+                                     mid_title=f'non-optimized adv\n(label = {non_optimized_adv_label})',
+                                     right_title=f'optimized adv\n(label = {optimized_adv_label})',
+                                     display=False,
+                                     path=self.image_path.replace(".png", "") + str(idx) + ".png")
             else:
                 show_two_images_3D(x_28_28_left=self.origin_adv_result[idx],
-                                         x_28_28_right=self.adv_result[idx],
-                                         left_title=f'clean\n(label = {clean_label})',
-                                         right_title=f'non-optimized adv\n(label = {non_optimized_adv_label})',
-                                         display=False,
-                                         path=self.image_path.replace(".png", "") + str(idx) + ".png")
+                                   x_28_28_right=self.adv_result[idx],
+                                   left_title=f'clean\n(label = {clean_label})',
+                                   right_title=f'non-optimized adv\n(label = {non_optimized_adv_label})',
+                                   display=False,
+                                   path=self.image_path.replace(".png", "") + str(idx) + ".png")
 
     def plot_some_random_images(self):  # multiple images in a figure
         if self.adv_result is None or len(self.adv_result) == 0:

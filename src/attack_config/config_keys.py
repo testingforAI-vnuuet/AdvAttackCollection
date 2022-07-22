@@ -10,8 +10,9 @@ IMAGES_DATA_PATH = 'images_data_path'
 LABELS_DATA_PATH = 'labels_data_path'
 
 UNTARGETED_FGSM = 'Untargeted FGSM'
+UNTARGETED_MI_FGSM = 'Untargeted MI FGSM'
 UNTARGETED_BIM_PGD = 'Untargeted BIM_PGD'
-UNTARGETED_HPBA = 'Untargeted HPBA'
+HPBA_ATTACK = 'HPBA'
 UNTARGETED_CW_L2 = 'Untargeted CW L2'
 UNTARGETED_BIS = 'Untargeted BIS'
 UNTARGETED_GAUSS = 'Untargeted GAUSS'
@@ -22,6 +23,8 @@ ENABLE = 'enable'
 MAX_ITERATION = 'max_iterations'
 MAX_BALL = 'max_ball'
 CONFIG_FILEPATH = 'config_filepath'
+DECAY_FACTOR = 'decay_factor'
+CONFIDENCE = 'confidence'
 
 
 

@@ -1,16 +1,14 @@
 import configparser
 
-from src.hpba_v2_2_3.src.utility.autoencoder_config import AutoencoderConfig
 from src.hpba_v2_2_3.src.attacker.constants import *
-
-from src.hpba_v2_2_3.src._test.attacker.test_input_config import test_input_config
+from src.hpba_v2_2_3.src.utility.autoencoder_config import AutoencoderConfig
 from src.hpba_v2_2_3.src.utility.constants import *
-from src.hpba_v2_2_3.src.utility.model_utils import analyze_classifier, validate_two_models, analyze_autoencoder
-from src.hpba_v2_2_3.src.utility.mylogger import *
+from src.hpba_v2_2_3.src.utility.model_utils import analyze_autoencoder
 from src.hpba_v2_2_3.src.utility.utils import *
 from src.hpba_v2_2_3.src.utility.utils import exit_execution
+from src.utils.attack_logger import AttackLogger
 
-logger = MyLogger().getLog()
+logger = AttackLogger.get_logger()
 
 
 class attack_config:
@@ -90,23 +88,25 @@ def analyze_config(config_path):
         attack_config.SSIM_threshold_to_stop_attack = float(
             attack_config.SSIM_threshold_to_stop_attack)
 
-    # attack type
-    attack_type_int = int(config_parser[CONFIG_TXT.CLASSIFIER][CONFIG_TXT.attack_type])
-    if attack_type_int not in [0, 1]:
-        logger.error(shared_incorrect_para_msg.format(param=CONFIG_TXT.attack_type))
-        exit_execution(shared_exit_msg)
-    attack_config.attack_type = ATTACK_WHITEBOX_TYPE if attack_type_int == 1 else ATTACK_BLACKBOX_TYPE
-
-    #  classifier path
-    analyze_classifier(config_parser=config_parser, attack_config=attack_config, logger=logger,
-                       shared_exit_msg=shared_exit_msg)
-
-    if attack_config.attack_type == ATTACK_BLACKBOX_TYPE and attack_config.substitute_classifier is not None:
-        ok = validate_two_models(classifier_1=attack_config.classifier.core_classifier,
-                                 classifier_2=attack_config.substitute_classifier,
-                                 logger=logger)
-        if not ok:
-            exit_execution()
+    attack_config.attack_type = 1  # disable
+    # disable to merge with attack collection
+    # # attack type
+    # attack_type_int = int(config_parser[CONFIG_TXT.CLASSIFIER][CONFIG_TXT.attack_type])
+    # if attack_type_int not in [0, 1]:
+    #     logger.error(shared_incorrect_para_msg.format(param=CONFIG_TXT.attack_type))
+    #     exit_execution(shared_exit_msg)
+    # attack_config.attack_type = ATTACK_WHITEBOX_TYPE if attack_type_int == 1 else ATTACK_BLACKBOX_TYPE
+    #
+    # #  classifier path
+    # analyze_classifier(config_parser=config_parser, attack_config=attack_config, logger=logger,
+    #                    shared_exit_msg=shared_exit_msg)
+    #
+    # if attack_config.attack_type == ATTACK_BLACKBOX_TYPE and attack_config.substitute_classifier is not None:
+    #     ok = validate_two_models(classifier_1=attack_config.classifier.core_classifier,
+    #                              classifier_2=attack_config.substitute_classifier,
+    #                              logger=logger)
+    #     if not ok:
+    #         exit_execution()
 
     attack_config.original_class = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.originalLabel])
     attack_config.weight = float(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.weight])
@@ -124,9 +124,10 @@ def analyze_config(config_path):
     attack_config.learning_rate = float(config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.learning_rate])
     attack_config.quality_loss = str(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.quality_loss]).lower()
 
-    ok = test_input_config(attack_config, logger)
-    if not ok:
-        exit_execution(shared_exit_msg)
+    # disable to merge with attack collection
+    # ok = test_input_config(attack_config, logger)
+    # if not ok:
+    #     exit_execution(shared_exit_msg)
 
     attack_config.max_number_advs_to_optimize = attack_config.number_data_to_attack
     attack_config.use_optimize_phase = True if attack_config.use_optimize_phase == 1 else False
@@ -134,22 +135,25 @@ def analyze_config(config_path):
     autoencoder_path = str(config_parser[CONFIG_TXT.AUTOENCODER_TRAINING][CONFIG_TXT.autoencoder_model_path])
     analyze_autoencoder(autoencoder_path=autoencoder_path, config=attack_config, logger=logger,
                         shared_exit_msg=shared_exit_msg, custom_objects=None)
-    attack_config.autoencoder_config = AutoencoderConfig(epochs=attack_config.epochs,
-                                                         batch_size=attack_config.batch_size,
-                                                         print_result_every_epochs=attack_config.print_result_every_epochs,
-                                                         learning_rate=attack_config.learning_rate,
-                                                         autoencoder_model=attack_config.autoencoder_model,
-                                                         autoencoder_model_name=attack_config.autoencoder_model_name)
+    attack_config.autoencoder_config = AutoencoderConfig(
+        epochs=attack_config.epochs,
+        batch_size=attack_config.batch_size,
+        print_result_every_epochs=attack_config.print_result_every_epochs,
+        learning_rate=attack_config.learning_rate,
+        autoencoder_model=attack_config.autoencoder_model,
+        autoencoder_model_name=attack_config.autoencoder_model_name
+    )
 
-    # data path
-    if int(config_parser[CONFIG_TXT.DATA][CONFIG_TXT.useDataFolder]) == 0:
-        read_data_from_npy(config_parser=config_parser, attack_config=attack_config, logger=logger,
-                           shared_exit_msg=shared_exit_msg)
-    else:
-        read_image_from_folder(config_parser=config_parser, attack_config=attack_config, logger=logger,
-                               shared_exit_msg=shared_exit_msg)
-
-    attack_config.input_range = get_range_of_input(attack_config.training_data)
+    # disable to merge with attack collection
+    # # data path
+    # if int(config_parser[CONFIG_TXT.DATA][CONFIG_TXT.useDataFolder]) == 0:
+    #     read_data_from_npy(config_parser=config_parser, attack_config=attack_config, logger=logger,
+    #                        shared_exit_msg=shared_exit_msg)
+    # else:
+    #     read_image_from_folder(config_parser=config_parser, attack_config=attack_config, logger=logger,
+    #                            shared_exit_msg=shared_exit_msg)
+    #
+    # attack_config.input_range = get_range_of_input(attack_config.training_data)
 
     # get target class
     target_class = int(config_parser[CONFIG_TXT.ATTACK][CONFIG_TXT.targetLabel])
@@ -173,6 +177,7 @@ def analyze_config(config_path):
     else:
         attack_config.target_class = target_class
 
+    # disable to merge with attack collection
     # # read defender config
     # use_defender = int(config_parser[DEFEND_CONFIG_TXT.DEFENDER][DEFEND_CONFIG_TXT.use_defender])
     # if use_defender == 1:

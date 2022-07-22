@@ -10,8 +10,9 @@ from src.hpba_v2_2_3.src.attacker.losses import *
 from src.hpba_v2_2_3.src.data_preprocessing.mnist import MnistPreprocessing
 from src.hpba_v2_2_3.src.utility.config import *
 from src.hpba_v2_2_3.src.utility.statistics import *
+from src.utils.attack_logger import AttackLogger
 
-logger = MyLogger.getLog()
+logger = AttackLogger.get_logger()
 
 
 class MnistAutoEncoder:
