@@ -11,5 +11,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     adv_generator = AdvGenerator(args.config_filepath,
-                                 limit_origins=100)
+                                 limit_origins=None)
     adv_generator.attack()
