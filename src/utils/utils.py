@@ -18,12 +18,12 @@ from matplotlib import pyplot as plt
 
 def compute_l0(adv: np.ndarray,
                ori: np.ndarray):
-    # if np.max(adv) <= 1:
-    #     adv = np.round(adv * 255)
-    # if np.max(ori) <= 1:
-    #     ori = np.round(ori * 255)
-    adv = np.round(adv, decimals=2)
-    ori = np.round(ori, decimals=2)
+    if np.max(adv) <= 1:
+        adv = int(np.round(adv * 255))
+    if np.max(ori) <= 1:
+        ori = int(np.round(ori * 255))
+    # adv = np.round(adv, decimals=2)
+    # ori = np.round(ori, decimals=2)
 
     adv = adv.reshape(-1)
     ori = ori.reshape(-1)
@@ -37,12 +37,12 @@ def compute_l0(adv: np.ndarray,
 def compute_l0s(advs: np.ndarray,
                 oris: np.ndarray,
                 n_features: int):
-    # if np.max(advs) <= 1:
-    #     advs = np.round(advs * 255)
-    # if np.max(oris) <= 1:
-    #     oris = np.round(oris * 255)
-    advs = np.round(advs, decimals=2)
-    oris = np.round(oris, decimals=2)
+    if np.max(advs) <= 1:
+        advs = int(np.round(advs * 255))
+    if np.max(oris) <= 1:
+        oris = int(np.round(oris * 255))
+    # advs = np.round(advs, decimals=2)
+    # oris = np.round(oris, decimals=2)
 
     advs = advs.reshape(-1, n_features)
     oris = oris.reshape(-1, n_features)
@@ -135,8 +135,10 @@ def compute_l2s_v2(advs: np.ndarray,
 
 def show_three_images_3D(x_28_28_left, x_28_28_mid, x_28_28_right, left_title="", mid_title="", right_title="",
                          path=None, display=False):
+    gray = False
     if x_28_28_left.shape[2] == 1: # for example, MNIST
         x_28_28_left = x_28_28_left.reshape(x_28_28_left.shape[0], x_28_28_left.shape[1])
+        gray = True
 
     if x_28_28_mid.shape[2] == 1: # for example, MNIST
         x_28_28_mid = x_28_28_mid.reshape(x_28_28_mid.shape[0], x_28_28_mid.shape[1])
@@ -147,17 +149,27 @@ def show_three_images_3D(x_28_28_left, x_28_28_mid, x_28_28_right, left_title=""
     fig = plt.figure()
     fig1 = fig.add_subplot(1, 3, 1)
     fig1.title.set_text(left_title)
-    plt.imshow(x_28_28_left)
+    if gray:
+        plt.imshow(x_28_28_left, cmap='gray')
+    else:
+        plt.imshow(x_28_28_left)
     # plt.imshow(x_28_28_left)
 
     fig2 = fig.add_subplot(1, 3, 2)
     fig2.title.set_text(mid_title)
-    plt.imshow(x_28_28_mid)
+
+    if gray:
+        plt.imshow(x_28_28_mid, cmap='gray')
+    else:
+        plt.imshow(x_28_28_mid)
     # plt.imshow(x_28_28_right)
 
     fig3 = fig.add_subplot(1, 3, 3)
     fig3.title.set_text(right_title)
-    plt.imshow(x_28_28_right)
+    if gray:
+        plt.imshow(x_28_28_right, cmap='gray')
+    else:
+        plt.imshow(x_28_28_right)
     # plt.imshow(x_28_28_right)
 
     if path is not None:
@@ -168,8 +180,10 @@ def show_three_images_3D(x_28_28_left, x_28_28_mid, x_28_28_right, left_title=""
 
 
 def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="", path=None, display=False):
+    gray = False
     if x_28_28_left.shape[2] == 1: # for example, MNIST
         x_28_28_left = x_28_28_left.reshape(x_28_28_left.shape[0], x_28_28_left.shape[1])
+        gray = True
 
     if x_28_28_right.shape[2] == 1: # for example, MNIST
         x_28_28_right = x_28_28_right.reshape(x_28_28_right.shape[0], x_28_28_right.shape[1])
@@ -177,11 +191,17 @@ def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="
     fig = plt.figure()
     fig1 = fig.add_subplot(1, 2, 1)
     fig1.title.set_text(left_title)
-    plt.imshow(x_28_28_left)
+    if gray:
+        plt.imshow(x_28_28_left, cmap='gray')
+    else:
+        plt.imshow(x_28_28_left)
 
     fig2 = fig.add_subplot(1, 2, 2)
     fig2.title.set_text(right_title)
-    plt.imshow(x_28_28_right)
+    if gray:
+        plt.imshow(x_28_28_right, cmap='gray')
+    else:
+        plt.imshow(x_28_28_right)
 
     if path is not None:
         plt.savefig(path, pad_inches=0, bbox_inches='tight', dpi=600)
