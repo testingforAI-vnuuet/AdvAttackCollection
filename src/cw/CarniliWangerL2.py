@@ -69,8 +69,12 @@ class CarliniWagnerL2(object):
                           slower to converge.
         """
         self.model_fn = None
+
         if isinstance(model_fn.layers[-1], tf.keras.layers.Softmax):
             self.model_fn = tf.keras.models.Model(model_fn.inputs, model_fn.layers[-2].output)
+        elif model_fn.layers[-1].activation == tf.keras.activations.softmax:
+            model_fn.layers[-1].activation = tf.keras.actvations.linear
+            self.model_fn = model_fn
         else:
             self.model_fn = model_fn
 
