@@ -19,9 +19,9 @@ from matplotlib import pyplot as plt
 def compute_l0(adv: np.ndarray,
                ori: np.ndarray):
     if np.max(adv) <= 1:
-        adv = int(np.round(adv * 255))
+        adv = np.round(adv * 255).astype(int)
     if np.max(ori) <= 1:
-        ori = int(np.round(ori * 255))
+        ori = np.round(ori * 255).astype(int)
     # adv = np.round(adv, decimals=2)
     # ori = np.round(ori, decimals=2)
 
@@ -38,9 +38,9 @@ def compute_l0s(advs: np.ndarray,
                 oris: np.ndarray,
                 n_features: int):
     if np.max(advs) <= 1:
-        advs = int(np.round(advs * 255))
+        advs = np.round(advs * 255).astype(int)
     if np.max(oris) <= 1:
-        oris = int(np.round(oris * 255))
+        oris = np.round(oris * 255).astype(int)
     # advs = np.round(advs, decimals=2)
     # oris = np.round(oris, decimals=2)
 
@@ -500,7 +500,7 @@ def confirm_adv_attack(target_classifier,
     try:
         logger.debug('Confirming the result:')
         if final_advs is None or len(final_advs) == 0:
-            logger.debug("\t\tThere is no generated adversarial examples. Overall success rate = 0%")
+            logger.debug("\t\tThere are no generated adversarial examples. Overall success rate = 0%")
             return
 
         pred_adv = target_classifier.predict(final_advs)
@@ -538,5 +538,6 @@ def confirm_adv_attack(target_classifier,
         max = np.round(np.max(ssims), 2)
         avg = np.round(np.average(ssims), 2)
         logger.debug(f'SSIM min/max/avg = {min: 0.2f} / {max: 0.2f} / {avg: 0.2f} (larger value is better)')
-    except Exception:
+    except Exception as e:
+        logger.debug(e)
         return
