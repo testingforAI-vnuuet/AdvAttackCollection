@@ -159,6 +159,12 @@ def show_three_images_3D(x_28_28_left, x_28_28_mid, x_28_28_right, left_title=""
 
 
 def show_two_images_3D(x_28_28_left, x_28_28_right, left_title="", right_title="", path=None, display=False):
+    if x_28_28_left.shape[2] == 1: # for example, MNIST
+        x_28_28_left = x_28_28_left.reshape(x_28_28_left.shape[0], x_28_28_left.shape[1])
+
+    if x_28_28_right.shape[2] == 1: # for example, MNIST
+        x_28_28_right = x_28_28_right.reshape(x_28_28_right.shape[0], x_28_28_right.shape[1])
+
     fig = plt.figure()
     fig1 = fig.add_subplot(1, 2, 1)
     fig1.title.set_text(left_title)
