@@ -528,10 +528,10 @@ def confirm_adv_attack(target_classifier,
         logger.debug(f'L0 min/max/avg = {min} / {max} / {avg: 0.2f} (close to 0 is better)')
 
         l2s = compute_l2s(final_advs, final_origin, n_features=final_advs.shape[1] * final_advs.shape[2] * final_advs.shape[3])
-        min = np.round(np.min(l2s), 2)
-        max = np.round(np.max(l2s), 2)
-        avg = np.round(np.average(l2s), 2)
-        logger.debug(f'L2 min/max/avg = {min: 0.2f} / {max: 0.2f} / {avg: 0.2f} (close to 0 is better)')
+        min = np.round(np.min(l2s), 5)
+        max = np.round(np.max(l2s), 5)
+        avg = np.round(np.average(l2s), 5)
+        logger.debug(f'L2 min/max/avg = {min: 0.5f} / {max: 0.5f} / {avg: 0.5f} (close to 0 is better)')
 
         ssims = compute_ssim(final_advs, final_origin)
         min = np.round(np.min(ssims), 2)
