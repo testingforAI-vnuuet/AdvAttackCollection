@@ -286,7 +286,7 @@ def show_method(name):
     logger.debug('')
     logger.info( '-----------------------------------------------------------------------------------------------------------------------------------------------')
     logger.info( '|                                                                                                                                             |')
-    logger.info(f'  b                                               {str(name).lower().replace("untargeted", "untargeted_").upper()}')
+    logger.info(f'|                                               {str(name).lower().replace("untargeted", "untargeted_").upper()}')
     logger.info( '|                                                                                                                                             |')
     logger.info( '-----------------------------------------------------------------------------------------------------------------------------------------------')
 

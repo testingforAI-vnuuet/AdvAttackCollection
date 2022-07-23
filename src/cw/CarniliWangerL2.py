@@ -68,7 +68,11 @@ class CarliniWagnerL2(object):
                           Smaller values produce better results but are
                           slower to converge.
         """
-        self.model_fn = model_fn
+        self.model_fn = None
+        if isinstance(model_fn.layers[-1], tf.keras.layers.Softmax):
+            self.model_fn = tf.keras.models.Model(model_fn.inputs, model_fn.layers[-2].output)
+        else:
+            self.model_fn = model_fn
 
         self.batch_size = batch_size
 
@@ -98,15 +102,11 @@ class CarliniWagnerL2(object):
         :return: a numpy tensor with the adversarial example.
         """
         adv_ex = np.zeros_like(x)
-        for i in tqdm(range(0, len(x), self.batch_size), desc='Attacking:...'):
+        for i in tqdm(range(0, len(x), self.batch_size), desc=f'Attacking batch of {self.batch_size} images:...'):
             adv_ex[i: i + self.batch_size] = self._attack(
                 x[i: i + self.batch_size]
             ).numpy()
 
-        # for i in tqdm(range(0, len(x), self.batch_size), desc='Attacking:...'):
-        #     adv_ex[i: i + self.batch_size] = self._attack(
-        #         x[i: i + self.batch_size]
-        #     ).numpy()
         adv_pred = np.argmax(self.model_fn.predict(adv_ex), axis=1).reshape(-1)
         adv_idx = np.where(adv_pred != y)
 
