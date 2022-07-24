@@ -145,6 +145,7 @@ class HPBA(Attacker):
                                             beta_2=0.999, amsgrad=False)
 
             au_loss = AE_LOSSES.general_loss(classifier=white_box_classifier,
+                                             target_vector=self.target_vector,
                                              beta=self.weight, input_shape=self.trainX[0].shape,
                                              is_untargeted=self.is_untargeted(), quality_loss_str=self.quality_loss_str,
                                              num_class=self.num_class)
@@ -180,12 +181,12 @@ class HPBA(Attacker):
         logger.debug(self.shared_log + 'filtering generated candidates!')
         generated_candidates = self.autoencoder.predict(self.origin_images[:self.num_images_to_attack])
 
-        ranking_strategy = COI_RANKING
+        ranking_strategy = SEQUENTIAL_RANKING
         optimized_classifier = self.classifier
-        if self.substitute_classifier is not None:
-            ranking_strategy = SEQUENTIAL_RANKING
+        # if self.substitute_classifier is not None:
+        #     ranking_strategy = SEQUENTIAL_RANKING
 
-        self.adv_result, _, self.origin_adv_result, result_origin_labels_vector = filter_candidate_adv(
+        self.adv_result, result_adv_labels_vector, self.origin_adv_result, result_origin_labels_vector = filter_candidate_adv(
             origin_data=self.origin_images[:self.num_images_to_attack], candidate_adv=generated_candidates,
             target_label=self.target_label,
             cnn_model=optimized_classifier, is_untargeted=self.is_untargeted(), origin_label=self.origin_label,

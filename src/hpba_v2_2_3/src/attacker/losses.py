@@ -194,7 +194,7 @@ class AE_LOSSES:
         return loss
 
     @staticmethod
-    def general_loss(classifier, beta, input_shape, is_untargeted, quality_loss_str, num_class):
+    def general_loss(classifier, target_vector, beta, input_shape, is_untargeted, quality_loss_str, num_class):
         """
 
         :param classifier:  target white-box classifier
@@ -220,10 +220,10 @@ class AE_LOSSES:
         def loss(origin_images, generated_images):
             batch_size = origin_images.shape[0]
             if num_class > 1:
-                # target_vectors = np.repeat(np.array([target_vector]), batch_size, axis=0)
+                target_vectors = np.repeat(np.array([target_vector]), batch_size, axis=0)
                 adv_loss = tf.keras.losses.categorical_crossentropy
             else:
-                # target_vectors = np.repeat(target_vector, repeats=batch_size)
+                target_vectors = np.repeat(target_vector, repeats=batch_size)
                 adv_loss = tf.keras.losses.binary_crossentropy
 
             quality_loss = quality_loss_function(origin_images,
@@ -231,7 +231,7 @@ class AE_LOSSES:
                 tf.reshape(origin_images, (batch_size, np.prod(input_shape))),
                 tf.reshape(generated_images, (batch_size, np.prod(input_shape))))
             return (1 - beta) * quality_loss + weight_in_2nd_loss * adv_loss(classifier(generated_images),
-                                                                             classifier(origin_images))
+                                                                             target_vectors)
 
         return loss
 

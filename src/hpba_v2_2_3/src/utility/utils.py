@@ -197,11 +197,11 @@ def validate_image_folder(attack_config, image_folder_path: str):
 def compute_l0(adv: np.ndarray,
                ori: np.ndarray):
     # if np.max(adv) <= 1:
-    #     adv = np.round(adv * 255)
+    #     adv = np.round(adv * 255).astype(int)
     # if np.max(ori) <= 1:
-    #     ori = np.round(ori * 255)
-    adv = np.round(adv, decimals=2)
-    ori = np.round(ori, decimals=2)
+    #     ori = np.round(ori * 255).astype(int)
+    adv = np.round(adv, decimals=4)
+    ori = np.round(ori, decimals=4)
 
     adv = adv.reshape(-1)
     ori = ori.reshape(-1)
@@ -216,11 +216,11 @@ def compute_l0s(advs: np.ndarray,
                 oris: np.ndarray,
                 n_features: int):
     # if np.max(advs) <= 1:
-    #     advs = np.round(advs * 255)
+    #     advs = np.round(advs * 255).astype(int)
     # if np.max(oris) <= 1:
-    #     oris = np.round(oris * 255)
-    advs = np.round(advs, decimals=2)
-    oris = np.round(oris, decimals=2)
+    #     oris = np.round(oris * 255).astype(int)
+    advs = np.round(advs, decimals=4)
+    oris = np.round(oris, decimals=4)
 
     advs = advs.reshape(-1, n_features)
     oris = oris.reshape(-1, n_features)
@@ -249,8 +249,8 @@ def compute_l2(adv: np.ndarray,
     #     adv = adv / 255.
     # if np.max(ori) > 1:
     #     ori = ori / 255.
-    adv = np.round(adv, decimals=2)
-    ori = np.round(ori, decimals=2)
+    adv = np.round(adv, decimals=4)
+    ori = np.round(ori, decimals=4)
     return np.linalg.norm(adv.reshape(-1) - ori.reshape(-1))
 
 
@@ -261,8 +261,8 @@ def compute_l2s(advs: np.ndarray,
     #     advs = advs / 255.
     # if np.max(oris) > 1:
     #     oris = oris / 255.
-    advs = np.round(advs, decimals=2)
-    oris = np.round(oris, decimals=2)
+    advs = np.round(advs, decimals=4)
+    oris = np.round(oris, decimals=4)
     l2_dist = np.linalg.norm(advs.reshape(-1, n_features) - oris.reshape(-1, n_features), axis=1)
     return l2_dist
 

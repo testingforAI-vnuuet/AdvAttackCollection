@@ -19,6 +19,7 @@ def optimize_advs(classifier, generated_advs, origin_images, target_label, origi
     total_element = np.prod(input_shape)
 
     advs_len = len(generated_advs)
+    adv_labels = np.argmax(classifier.predict(generated_advs), axis=1)
     generated_advs = generated_advs.reshape((-1, total_element))
     origin_images = origin_images.reshape((-1, total_element))
     # origin_images_0_255 = np.round(origin_images * 255)
@@ -45,16 +46,15 @@ def optimize_advs(classifier, generated_advs, origin_images, target_label, origi
         for batch_index in range(0, advs_len, batch_size):
             # print(f'batch: {batch_index}')
             result = optimize_batch(classifier,
-                                    smooth_advs_0_255s[
-                                    batch_index: batch_index + batch_size],
+                                    smooth_advs_0_255s[batch_index: batch_index + batch_size],
                                     origin_images[batch_index: batch_index + batch_size],
                                     smooth_advs_0_255s[batch_index: batch_index + batch_size],
-                                    origin_images_0_255[
-                                    batch_index: batch_index + batch_size],
+                                    origin_images_0_255[batch_index: batch_index + batch_size],
                                     target_label,
                                     origin_label,
-                                    origin_labels,
-                                    step, num_class, ranking_type, return_recover_speed, is_untargeted)
+                                    origin_labels[batch_index: batch_index + batch_size],
+                                    step, num_class, ranking_type, return_recover_speed, is_untargeted,
+                                    adv_labels[batch_index: batch_index + batch_size])
             if return_recover_speed is False:
                 smooth_advs_0_255 = result
             else:
@@ -68,11 +68,11 @@ def optimize_advs(classifier, generated_advs, origin_images, target_label, origi
         # display
         L0, L2, SSIM = compute_distance(smooth_advs_0_255s.reshape(-1, input_shape[0], input_shape[1], input_shape[2]),
                                         origin_images.reshape(-1, input_shape[0], input_shape[1], input_shape[2]))
-        print(f'\t| L0 min/max/avg: {np.min(L0)}/ {np.max(L0)}/ {np.average(L0):.2f}')
+        print(f'\t| L0 min/max/avg: {np.min(L0)}/ {np.max(L0)}/ {np.average(L0):.2f} (we only compare up to 4 decimal points)')
         print(
-            f'\t| L2 min/max/avg: {np.round(np.min(L2), 2):.2f}/ {np.round(np.max(L2), 2):.2f}/ {np.round(np.average(L2), 2):.2f}')
+            f'\t| L2 min/max/avg: {np.min(L2)}/ {np.max(L2)}/ {np.average(L2)}')
         print(
-            f'\t| SSIM min/max/avg: {np.round(np.min(SSIM), 2):.2f}/ {np.round(np.max(SSIM), 2):.2f}/ {np.round(np.average(SSIM), 2):.2f}')
+            f'\t| SSIM min/max/avg: {np.min(SSIM)}/ {np.max(SSIM)}/ {np.average(SSIM)}')
 
         if return_recover_speed is True:
             if latest_recover_speed is None:
@@ -104,7 +104,8 @@ def optimize_advs(classifier, generated_advs, origin_images, target_label, origi
 
 def optimize_batch(classifier, generated_advs, origin_images, generated_advs_0_255, origin_images_0_255,
                    target_label, origin_label, origin_labels,
-                   step, num_class=10, ranking_type=None, return_recover_speed=False, is_untargeted=False):
+                   step, num_class=10, ranking_type=None, return_recover_speed=False, is_untargeted=False,
+                   adv_labels = None):
     diff_pixels = []
     batch_size = len(generated_advs)
     # smooth_advs_0_255_arrs = np.array(generated_advs_0_255)
@@ -151,13 +152,15 @@ def optimize_batch(classifier, generated_advs, origin_images, generated_advs_0_2
                          origin_images_0_255=origin_images_0_255, target_label=target_label,
                          origin_label=origin_label,
                          step=step, diff_pixel_arrs=diff_pixel_arrs,
-                         return_recover_speed=return_recover_speed, is_untargeted=is_untargeted, num_class=num_class
+                         return_recover_speed=return_recover_speed, is_untargeted=is_untargeted, num_class=num_class,
+                         adv_labels = adv_labels
                          )
 
 
 def recover_batch(classifier, generated_advs, origin_labels, generated_advs_0_255, origin_images_0_255, target_label,
                   origin_label,
-                  step, diff_pixel_arrs=None, return_recover_speed=False, is_untargeted=False, num_class=10):
+                  step, diff_pixel_arrs=None, return_recover_speed=False, is_untargeted=False, num_class=10,
+                  adv_labels = None):
     total_elems = np.prod(generated_advs[0].shape)
     # make all diff_pixel arr to same length
     padded_diff_pixels = padd_to_arrs(diff_pixel_arrs, padded_value=total_elems, d_type=int)
@@ -183,7 +186,10 @@ def recover_batch(classifier, generated_advs, origin_labels, generated_advs_0_25
         if is_untargeted is False:
             unrecovered_adv_indexes = np.where(predictions != target_label)[0]
         else:
-            unrecovered_adv_indexes = np.where(predictions == np.argmax(origin_labels, axis=1))[0]
+            if target_label == -1 and origin_label == -1:
+                unrecovered_adv_indexes = np.where(predictions != adv_labels)[0]
+            else:
+                unrecovered_adv_indexes = np.where(predictions == np.argmax(origin_labels, axis=1))[0]
         # check recover effect to each prediction
         if len(unrecovered_adv_indexes) == 0:
             continue

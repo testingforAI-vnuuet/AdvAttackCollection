@@ -215,7 +215,7 @@ class AdvGenerator:
                             num_images_to_train=hpba_config.number_data_to_train_autoencoder,
                             num_class=hpba_config.num_class,
                             use_optimize_phase=hpba_config.use_optimize_phase,
-                            substitute_classifier=self.target_classifier,
+                            substitute_classifier=None,
                             attack_type=hpba_config.attack_type,
                             substitute_classifier_name=hpba_config.substitute_classifier_name,
                             attack_stop_condition=(hpba_config.L0_threshold_to_stop_attack,

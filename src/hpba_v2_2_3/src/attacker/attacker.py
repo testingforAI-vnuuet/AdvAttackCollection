@@ -74,10 +74,14 @@ class Attacker:
         #         self.target_label = label_ranking(self.origin_images, self.classifier)[-1 * self.target_position]
 
         self.shared_time_stamp = get_timestamp()
+        self.target_vector = None
+
+        self.target_vector = tf.keras.utils.to_categorical(self.target_label, self.num_class,
+                                                           dtype='float32') if num_class > 1 else np.array(self.target_label, dtype='float32')
+
         # if self.target_label != -1:
         #     self.target_vector = tf.keras.utils.to_categorical(self.target_label, self.num_class,
-        #                                                    dtype='float32') if num_class > 1 else np.array(
-        #     self.target_label, dtype='float32')
+        #                                                    dtype='float32') if num_class > 1 else np.array( self.target_label, dtype='float32')
         # else:
         #     self.target_vector = tf.keras.utils.to_categorical(self.origin_labels, self.num_class)
 
