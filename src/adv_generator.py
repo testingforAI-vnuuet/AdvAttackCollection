@@ -52,7 +52,7 @@ class AdvGenerator:
                             epsilons = [epsilons]
                         for ep in epsilons:
                             show_method(f'FGSM with ep = {ep}')
-                            attacker = UntargetedBIM_PGD(
+                            attacker = UntargetedBIS(
                                 X=self.images,
                                 Y=self.labels,
                                 target_classifier=self.target_classifier,
