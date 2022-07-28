@@ -58,7 +58,9 @@ class AdvGenerator:
                                 target_classifier=self.target_classifier,
                                 epsilon=float(ep),
                                 batch_size=int(fgsm_config[BATCH_SIZE]),
-                                max_iteration=1
+                                max_iteration=1,
+                                lower_pixel_value=self.config_parser.pixel_range[0],
+                                upper_pixel_value=self.config_parser.pixel_range[1]
                             )
                             final_origin, final_advs, final_true_labels = attacker.attack()
                             exportAttackResult(
@@ -89,7 +91,9 @@ class AdvGenerator:
                                 target_classifier=self.target_classifier,
                                 batch_size=int(mi_fgsm_config[BATCH_SIZE]),
                                 max_iteration=int(mi_fgsm_config[MAX_ITERATION]),
-                                decay_factor=float(mi_fgsm_config[DECAY_FACTOR])
+                                decay_factor=float(mi_fgsm_config[DECAY_FACTOR]),
+                                lower_pixel_value=self.config_parser.pixel_range[0],
+                                upper_pixel_value=self.config_parser.pixel_range[1]
                             )
                             final_origin, final_advs, final_true_labels = attacker.attack()
                             exportAttackResult(
@@ -121,7 +125,9 @@ class AdvGenerator:
                                 epsilon=float(ep),
                                 batch_size=int(bim_pgd_config[BATCH_SIZE]),
                                 max_iteration=int(bim_pgd_config[MAX_ITERATION]),
-                                max_ball=float(bim_pgd_config[MAX_BALL])
+                                max_ball=float(bim_pgd_config[MAX_BALL]),
+                                lower_pixel_value=self.config_parser.pixel_range[0],
+                                upper_pixel_value=self.config_parser.pixel_range[1]
                             )
                             final_origin, final_advs, final_true_labels = attacker.attack()
                             exportAttackResult(
@@ -151,7 +157,9 @@ class AdvGenerator:
                                 target_classifier=self.target_classifier,
                                 epsilon=float(ep),
                                 batch_size=int(bis_config[BATCH_SIZE]),
-                                max_iteration=int(bis_config[MAX_ITERATION])
+                                max_iteration=int(bis_config[MAX_ITERATION]),
+                                lower_pixel_value=self.config_parser.pixel_range[0],
+                                upper_pixel_value=self.config_parser.pixel_range[1]
                             )
                             final_origin, final_advs, final_true_labels = attacker.attack()
                             exportAttackResult(
@@ -181,7 +189,9 @@ class AdvGenerator:
                                 target_classifier=self.target_classifier,
                                 epsilon=float(ep),
                                 batch_size=int(gauss_config[BATCH_SIZE]),
-                                max_iteration=int(gauss_config[MAX_ITERATION])
+                                max_iteration=int(gauss_config[MAX_ITERATION]),
+                                lower_pixel_value=self.config_parser.pixel_range[0],
+                                upper_pixel_value=self.config_parser.pixel_range[1]
                             )
                             final_origin, final_advs, final_true_labels = attacker.attack()
                             exportAttackResult(
@@ -262,7 +272,9 @@ class AdvGenerator:
                                 model_fn=self.target_classifier,
                                 batch_size=int(cw_l2_config[BATCH_SIZE]),
                                 confidence=float(conf),
-                                max_iterations=int(cw_l2_config[MAX_ITERATION])
+                                max_iterations=int(cw_l2_config[MAX_ITERATION]),
+                                clip_min=self.config_parser.pixel_range[0],
+                                clip_max=self.config_parser.pixel_range[1]
                             )
                             final_origin, final_advs, final_true_labels = attacker.attack(self.images, self.labels)
                             utils.confirm_adv_attack(self.target_classifier, final_advs, final_origin,
